@@ -48,6 +48,8 @@ function GeoXml(myvar, map, url, opts) {
   if(typeof this.opts.allfoldersopen !="undefined"){ this.forcefoldersopen = this.opts.allfoldersopen;}
   this.clickablepolys = true;
   this.clickablelines = true;
+  this.clickablemarkers = true;
+  if(typeof this.opts.clickablemarkers !="undefined"){ this.clickablemarkers = this.opts.clickablemarkers;}
   if(typeof this.opts.clickablepolys !="undefined"){ this.clickablepolys = this.opts.clickablepolys;}
   if(typeof this.opts.clickablelines !="undefined"){ this.clickablelines = this.opts.clickablelines;}
   this.nolegend = false;
@@ -300,13 +302,13 @@ GeoXml.prototype.createMarker = function(point,name,desc,style,idx,instyle,visib
   } else {
     html1 = html;
   }
-  
-
-  GEvent.addListener(m, "click", function() {
-    eval(myvar+".lastmarker = m");
-    m.openInfoWindowHtml(html1 + "</div>",iwoptions);
-  });
-
+ 
+	if(this.clickablemarkers){
+  		GEvent.addListener(m, "click", function() {
+  		  eval(myvar+".lastmarker = m");
+  	  	m.openInfoWindowHtml(html1 + "</div>",iwoptions);
+  		});
+	}
   if(this.opts.domouseover){
 	m.mess = html1+"</div>";
 	m.geoxml = this;
