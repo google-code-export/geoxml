@@ -221,6 +221,9 @@ GeoXml.prototype.createMarker = function(point,name,desc,style,idx,instyle,visib
     if(instyle == null || typeof instyle == "undefined"){
 	shadow = href + "s.png";
 	href += ".png";
+	if(this.opts.baseicon){
+		href = this.opts.baseicon.image;
+		}
 	}
    else { 
 	if(instyle.href) { href = instyle.href; }
