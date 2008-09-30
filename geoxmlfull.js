@@ -223,6 +223,7 @@ GeoXml.prototype.createMarker = function(point,name,desc,style,idx,instyle,visib
 	href += ".png";
 	if(this.opts.baseicon){
 		href = this.opts.baseicon.image;
+		shadow = this.opts.basicon.shadow;
 		}
 	}
    else { 
