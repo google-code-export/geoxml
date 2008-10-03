@@ -20,7 +20,7 @@ function GeoXml(myvar, map, url, opts) {
   // store the parameters
   this.myvar = myvar;
   this.opts = opts || {};
-  this.mb = new MessageBox(map,this,"mb",opts.messagebox);
+  this.mb = new MessageBox(map,this,"mb",this.opts.messagebox);
   this.map = map;
   this.url = url;
   if (typeof url == "string") {
