@@ -37,7 +37,6 @@ function GeoXml(myvar, map, url, opts) {
   this.directionstyle = this.opts.directionstyle || 'style="font-family: arial, sans-serif;font-size: small;padding-left: 1px;padding-top: 1px;padding-right: 4px;"';
   // sidebar
   this.sidebarfn = this.opts.sidebarfn || GeoXml.addSidebar;
-  this.dropboxfn = this.opts.dropboxfn || GeoXml.addDropdown;
   // elabel options 
   this.pointlabelopacity = this.opts.pointlabelopacity || 100;
   this.polylabelopacity = this.opts.polylabelopacity || 100;
