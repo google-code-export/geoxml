@@ -372,6 +372,7 @@ GeoXml.getDescription = function(node){
     u = u.replace(/\&amp;/g,"&");
     u = u.replace(/\&lt;/g,"<"); 
     u = u.replace(/\&quot;/g,'"');
+     u = u.replace(/\&apos;/g,"'");
     u = u.replace(/\&gt;/g,">");
     return u;
     };
