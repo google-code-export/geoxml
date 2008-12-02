@@ -840,8 +840,8 @@ GeoXml.prototype.setFolders = function() {
 		}
 	 
 	};
-
-GeoXml.prototype.recurseJSON = function (doc, title, desc, sbid, depth, paren){
+ 
+GeoXml.prototype.recurseJSON = function (doc, title, desc, sbid, depth){
 	var that = this;
 	var polys = doc.marks;
 	var name = doc.title;
@@ -862,21 +862,15 @@ GeoXml.prototype.recurseJSON = function (doc, title, desc, sbid, depth, paren){
     	that.overlayman.folderhtml.push([]);
     	that.overlayman.folderhtmlast.push(0);
 	that.overlayman.folderBounds.push(new GLatLngBounds());
-	var me = paren;
+	that.kml.push(new KMLObj(title,description,keepopen));
 	if((!depth && (doc.folders && doc.folders.length >1)) || doc.marks.length){
 		if(depth < 2 || doc.marks.length < 1) { icon = that.globalicon; }
 		else { icon = that.foldericon;}
-		that.kml.push(new KMLObj(title,description,keepopen,idx));
-		me = that.kml.length - 1;
 		folderid = that.createFolder(idx, name, sbid, icon, description, snippet, keepopen, visible);
 		} 
 	else {
 		folderid = sbid;
 		}
-
-	that.kml[me].open = keepopen;
-	that.kml[me].folderid = folderid;
-
 	var parm, blob;
 	var nhtml ="";
 	var html;
@@ -907,16 +901,14 @@ GeoXml.prototype.recurseJSON = function (doc, title, desc, sbid, depth, paren){
 	var fc = 0;
 	var fid = 0;
 	if(typeof doc.folders!="undefined"){
-		fc = doc.folders.length;
-		for(var f=0;f<fc;++f){
+		fc = doc.folders.lenth;
+		for(var f=0;f<doc.folders.length;++f){
 			var nextdoc = that.jsdocs[doc.folders[f]];
-			fid = that.recurseJSON(nextdoc, nextdoc.title, nextdoc.description, folderid, (depth+1), me);
+			fid = that.recurseJSON(nextdoc, nextdoc.title, nextdoc.description, folderid, (depth+1));
 			that.overlayman.subfolders[idx].push(fid);
 			that.overlayman.folderBounds[idx].extend(that.overlayman.folderBounds[fid].getSouthWest());
 			that.overlayman.folderBounds[idx].extend(that.overlayman.folderBounds[fid].getNorthEast());
-			if(fid != idx){ 
-				that.kml[idx].folders.push(fid); 
-				}
+			if(fid != idx){ that.kml[idx].folders.push(fid); }
 			}
 		}
 
