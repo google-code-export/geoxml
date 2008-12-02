@@ -5,13 +5,14 @@
 *  Additions include:   GML/WFS/GeoRSS/GPX expanded GE KML style support      *                                          
 \******************************************************************************/
 // Constructor
-function KMLObj(title,desc,op) {
+function KMLObj(title,desc,op,fid) {
 	this.title = title;
   	this.description = escape(desc);
   	this.marks = [];
 	this.folders = [];
 	this.groundOverlays = [];
 	this.open = op;
+	this.folderid = fid;
 	}
 
 function $(mid){ return document.getElementById(mid);}
@@ -88,7 +89,7 @@ function GeoXml(myvar, map, url, opts) {
   this.NumLevels = 18;
   this.maxtitlewidth = 0; 
   this.styles = []; 
-  this.kml = [new KMLObj("GeoXML","",true)];
+ 
   this.jsdocs = [];
   this.jsonmarks = [];
   this.polyset = []; /* used while rendering */
@@ -98,6 +99,7 @@ function GeoXml(myvar, map, url, opts) {
   this.overlayman = new Clusterer(map, this);
   this.overlayman.rowHeight = 20;
   if(this.opts.sidebarid){ this.basesidebar = this.opts.sidebarid; }
+  this.kml = [new KMLObj("GeoXML","",true,0)];
   this.overlayman.folders.push([]);
   this.overlayman.subfolders.push([]);
   this.overlayman.folderhtml.push([]);
@@ -127,7 +129,7 @@ GeoXml.prototype.clear = function(idx) {
 	for(var m=0;m<this.overlayman.markers.length;m++){
 		this.overlayman.RemoveMarker(this.overlayman.markers[m]);
 		}
-	this.kml = [new KMLObj("GeoXML","",true)];
+	this.kml = [new KMLObj("GeoXML","",true,0)];
  	this.maxtitlewidth = 0;
   	this.styles = []; 
 	// associative array
@@ -801,6 +803,7 @@ GeoXml.prototype.handlePlaceObj = function(num, max, idx, lastlinename, depth){
         				that.map.setCenter(that.bounds.getCenter());
       					}
       				GEvent.trigger(that,"parsed");
+				that.setFolders();
       				if(!that.opts.sidebarid){
 					that.mb.showMess("Finished Parsing",1000);
 					that.ParseURL();	
@@ -819,7 +822,25 @@ GeoXml.prototype.parseJSON  = function (doc, title, latlon, desc, sbid){
 	that.recurseJSON(that.jsdocs[0], title, desc, that.basesidebar, 0);
 	};
 
-GeoXml.prototype.recurseJSON = function (doc, title, desc, sbid, depth){
+GeoXml.prototype.setFolders = function() {
+	var that = this;
+	var len = that.kml.length;
+	for(var i=1;i<len;i++){
+		var fid = that.kml[i].folderid;
+		var fob = document.getElementById(fid);
+ 		if(fob != null) {
+			if(!!that.kml[i].open){
+				fob.style.display='block';
+				}
+			else {
+				fob.style.display='none';
+				}
+			}
+		}
+	 
+	};
+
+GeoXml.prototype.recurseJSON = function (doc, title, desc, sbid, depth, paren){
 	var that = this;
 	var polys = doc.marks;
 	var name = doc.title;
@@ -840,15 +861,21 @@ GeoXml.prototype.recurseJSON = function (doc, title, desc, sbid, depth){
     	that.overlayman.folderhtml.push([]);
     	that.overlayman.folderhtmlast.push(0);
 	that.overlayman.folderBounds.push(new GLatLngBounds());
-	that.kml.push(new KMLObj(title,description,keepopen));
+	var me = paren;
 	if((!depth && (doc.folders && doc.folders.length >1)) || doc.marks.length){
 		if(depth < 2 || doc.marks.length < 1) { icon = that.globalicon; }
 		else { icon = that.foldericon;}
+		that.kml.push(new KMLObj(title,description,keepopen,idx));
+		me = that.kml.length - 1;
 		folderid = that.createFolder(idx, name, sbid, icon, description, snippet, keepopen, visible);
 		} 
 	else {
 		folderid = sbid;
 		}
+
+	that.kml[me].open = keepopen;
+	that.kml[me].folderid = folderid;
+
 	var parm, blob;
 	var nhtml ="";
 	var html;
@@ -873,23 +900,22 @@ GeoXml.prototype.recurseJSON = function (doc, title, desc, sbid, depth){
 		}	
 
 	if(that.groundOverlays){
-		
-
-
 		}
 
 	if(polys.length){ that.handlePlaceObj(num,max,idx,null,depth); }
 	var fc = 0;
 	var fid = 0;
 	if(typeof doc.folders!="undefined"){
-		fc = doc.folders.lenth;
-		for(var f=0;f<doc.folders.length;++f){
+		fc = doc.folders.length;
+		for(var f=0;f<fc;++f){
 			var nextdoc = that.jsdocs[doc.folders[f]];
-			fid = that.recurseJSON(nextdoc, nextdoc.title, nextdoc.description, folderid, (depth+1));
+			fid = that.recurseJSON(nextdoc, nextdoc.title, nextdoc.description, folderid, (depth+1), me);
 			that.overlayman.subfolders[idx].push(fid);
 			that.overlayman.folderBounds[idx].extend(that.overlayman.folderBounds[fid].getSouthWest());
 			that.overlayman.folderBounds[idx].extend(that.overlayman.folderBounds[fid].getNorthEast());
-			if(fid != idx){ that.kml[idx].folders.push(fid); }
+			if(fid != idx){ 
+				that.kml[idx].folders.push(fid); 
+				}
 			}
 		}
 
@@ -1870,20 +1896,26 @@ GeoXml.prototype.handleStyle = function(style,sid){
 	if(sid){ this.styles["#"+sid] = tempstyle; }
 	return tempstyle;
 };
-GeoXml.prototype.processKML = function(node, marks, title, sbid, depth) {  
+GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {  
 	var that = this;
 	var thismap = this.map;
 	var icon;
 	var grouptitle;
+	var keepopen = this.forcefoldersopen;
 	if (node.nodeName == "kml"){ icon = this.docicon; }
-        if (node.nodeName == "Document" ){ icon = this.kmlicon;  }
-	if (node.nodeName == "Folder"){  icon = this.foldericon; grouptitle = title; 	}
+        if (node.nodeName == "Document" ){ 
+		icon = this.kmlicon;  
+		}
+	if (node.nodeName == "Folder"){  
+		icon = this.foldericon; 
+		grouptitle = title; 
+		}
 	var pm = [];
 	var sf = [];
 	var desc= "";
 	var snip ="";
 	var i;
-	var open = that.forcefoldersopen;
+	
 	var visible = true;
 	var boundsmodified = false;
         var networklink = false;
@@ -1980,8 +2012,8 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth) {
 				desc = GeoXml.getDescription(nextn);
 				break;
 			case "open":
-				if(GXml.value(nextn) == "1"){  open = true; }
-				if(GXml.value(nextn) == "0") { open = this.forcefoldersopen; }
+				if(GXml.value(nextn) == "1"){  keepopen = true; }
+				if(GXml.value(nextn) == "0") { keepopen = this.forcefoldersopen; }
 				break;
 			case "visibility":
 				if(GXml.value(nextn) == "0") { visible = false; }
@@ -1999,25 +2031,34 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth) {
 				}
 			}
 
- 	
+  
 	var folderid;
+
 	var idx = this.overlayman.folders.length;
+	var me = paren;
 	if(sf.length >1 || pm.length || ground || makewms ){
         	this.overlayman.folders.push([]);
 		this.overlayman.subfolders.push([]);
     		this.overlayman.folderhtml.push([]);
     		this.overlayman.folderhtmlast.push(0);
 		this.overlayman.folderBounds.push(new GLatLngBounds());
-  		this.kml.push(new KMLObj(title,desc));
-		folderid = this.createFolder(idx, title, sbid, icon, desc, snip, open, visible);
+  		this.kml.push(new KMLObj(title, desc, false, idx));
+		me = this.kml.length - 1;
+		folderid = this.createFolder(idx, title, sbid, icon, desc, snip, false, visible);
 		} 
 	else {
 		folderid = sbid;
 		}
- 
+
+
+	if (node.nodeName == "Folder" || node.nodeName == "Document"){  
+		this.kml[me].open = keepopen; 
+		this.kml[me].folderid = folderid;
+		}
+
 	if(ground || makewms){
 		this.kml[this.kml.length-1].visibility = visible;
-		this.kml[this.kml.length-1].groundOverlays.push({"url":url});
+		this.kml[this.kml.length-1].groundOverlays.push({"url":url,"bounds":bounds});
 		}
 	 
 
@@ -2065,7 +2106,6 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth) {
 			var html = desc;
 			var thismap = this.map;
 			GEvent.addListener(ground,"zoomto", function() { 
-						alert(bounds);
 						thismap.setZoom(thismap.getBoundsZoomLevel(ground.getBounds()));
 						thismap.panTo(ground.getBounds().getCenter()); });
 			this.overlayman.folderBounds[idx].extend(ground.getBounds().getSouthWest());
@@ -2081,8 +2121,9 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth) {
 		this.handlePlacemark(pm[i], idx, depth+1);
 		}
 	var fc = 0;
+
 	for(i=0;i<sf.length;i++) {
-	 	 var fid = this.processKML(sf[i], marks, title, folderid, depth+1);
+	 	 var fid = this.processKML(sf[i], marks, title, folderid, depth+1, me);
 		 if(typeof fid =="number" && fid != idx){
 			var sub = this.overlayman.folderBounds[fid];
 			if(!sub) { 
@@ -2186,14 +2227,15 @@ GeoXml.prototype.processGPX = function(node,title,sbid,depth) {
 		this.overlayman.subfolders.push([]);
     		this.overlayman.folderhtml.push([]);
     		this.overlayman.folderhtmlast.push(0);
-		this.kml.push(new KMLObj(title,desc,open));
 		this.overlayman.folderBounds.push(new GLatLngBounds());
+		this.kml.push(new KMLObj(title,desc,open,idx));
 		folderid = this.createFolder(idx, title, sbid, icon, desc, snip, open, visible);
 		} 
  	 else {
 		folderid = sbid;
 		}
 		
+
 	for(i=0;i<pm.length;i++) {
 		this.handlePlacemark(pm[i], idx, depth+1);
 		}
@@ -2353,8 +2395,9 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
 
 	bar = $(this.basesidebar);
 	if(bar){ bar.style.display=""; }
-	    idx = this.overlayman.folders.length;
-	var fid = this.processKML(root, marknames, title, this.basesidebar, 0);	
+	idx = this.overlayman.folders.length;
+	var paren = this.kml.length-1;
+	var fid = this.processKML(root, marknames, title, this.basesidebar, 0, paren);	
 	this.kml[0].folders.push(idx);
 	}
      else { 
@@ -2394,13 +2437,15 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
     	if(placemarks.length) {
 		bar = $(that.basesidebar);
 		if(bar){ bar.style.display=""; }
-		this.kml.push(new KMLObj(title,desc,keepopen));
         	this.overlayman.folders.push([]);
        		this.overlayman.folderhtml.push([]);
 		this.overlayman.folderhtmlast.push(0);
 		this.overlayman.folderBounds.push(new GLatLngBounds());
         	idx = this.overlayman.folders.length-1;	
-		if(this.basesidebar) { 	var folderid = this.createFolder(idx,title,this.basesidebar,this.globalicon,desc,null,keepopen,true); }
+		this.kml[idx].open = keepopen;
+		this.kml.push(new KMLObj(title,desc,keepopen,idx));
+		if(this.basesidebar) { 	
+			var folderid = this.createFolder(idx,title,this.basesidebar,this.globalicon,desc,null,keepopen,true); }
     		for (i = 0; i < placemarks.length; i++) {
      			this.handlePlacemark(placemarks[i], idx, sbid, style);
     			}
@@ -2426,7 +2471,8 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
 
  
 GeoXml.prototype.createFolder = function(idx, title, sbid, icon, desc, snippet, keepopen, visible){ 	      
-		var sb = $(sbid);	
+		var sb = $(sbid);
+		keepopen = true;	
 	 	var folderid = this.myvar+'_folder'+ idx;
                 var checked ="";
 		if(visible){ checked = " checked "; }
@@ -2446,7 +2492,7 @@ GeoXml.prototype.createFolder = function(idx, title, sbid, icon, desc, snippet, 
 		htm += 'onclick="'+this.myvar+'.toggleContents('+idx+',this.checked)">';
 		htm += '&nbsp;<span title="'+snippet+'" id="'+this.myvar+'TB'+idx+'" oncontextmenu=\"'+this.myvar+'.saveJSON('+idx+');\" onclick="'+this.myvar+'.toggleFolder('+idx+')" style=\"'+fw+'\">';
 		htm += '<img style=\"vertical-align:text-top;padding:0;margin:0\" height=\"16\" border=\"0\" src="'+icon+'" /></span>&nbsp;';
-		htm += '<a href="#" onclick="'+this.myvar+'.overlayman.zoomToFolder('+idx+');'+this.myvar+'.mb.showMess(\''+desc+'\',3000);return false;">' + title + '</a><br><span id=\"'+folderid+'\" style="height:14px;'+disp+'"></span></ul>';
+		htm += '<a href="#" onclick="'+this.myvar+'.overlayman.zoomToFolder('+idx+');'+this.myvar+'.mb.showMess(\''+desc+'\',3000);return false;">' + title + '</a><br><div id=\"'+folderid+'\" style="'+disp+'"></div></ul>';
 		if(sb){ sb.innerHTML = htm + sb.innerHTML; }
 		return folderid;
 	    };
@@ -2550,9 +2596,8 @@ GeoXml.prototype.processGML = function(root,title, latlon, desc) {
             this.overlayman.folderhtml.push([]);
 	    this.overlayman.folderhtmlast.push(0);
 	    this.overlayman.folderBounds.push(new GLatLngBounds());
-	    this.kml.push(new KMLObj(title,desc,true));
 	    var idx = this.overlayman.folders.length-1;
-
+ 	    this.kml.push(new KMLObj(title,desc,true,idx));
     	    if(this.basesidebar) {    
 	 	    folderid = this.createFolder(idx,title,this.basesidebar,this.gmlicon,desc,null,true,true);
 		    } 
@@ -3100,11 +3145,11 @@ Clusterer.Display = function (clusterer)
   	
 	if(update_side && count>0){
 		 if (clusterer.paren.progress == 0) {
+			clusterer.paren.setFolders();
      			GEvent.trigger(clusterer.paren,"parsed");
-      			if(!clusterer.paren.opts.sidebarid){
+      			if(!clusterer.paren.opts.sidebarid){	
 				clusterer.paren.mb.showMess("Finished Parsing",1000);
 				}
-    
 			var mifinish = new Date();
 			var sec = ((mifinish - clusterer.miStart)/1000+" seconds");
 			clusterer.paren.mb.showMess("Loaded "+count+"  GeoXML elements in "+sec,5000);
