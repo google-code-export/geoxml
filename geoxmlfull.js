@@ -239,7 +239,8 @@ GeoXml.prototype.createMarker = function(point,name,desc,style,idx,instyle,visib
   if (icontype == "style") {
     if (!!this.styles[style]) {
       icon = new GIcon(bicon, this.styles[style].href, null, this.styles[style].shadow);
-      href = icon.href;
+      icon.src =  this.styles[style].href;
+      href =  this.styles[style].href;
     }
   }
   if (!markeroptions.icon) {
