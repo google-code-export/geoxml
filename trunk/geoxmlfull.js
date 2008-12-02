@@ -1995,9 +1995,9 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {
 						}	
 					}
 				else {
-					var gbounds = new GLatLngBounds(sw,ne);
-      					ground = new GGroundOverlay(url, gbounds);
-					ground.bounds = gbounds;
+					wmsbounds = new GLatLngBounds(sw,ne);
+      					ground = new GGroundOverlay(url, wmsbounds);
+					ground.bounds = wmsbounds;
 					ground.getBounds = function(){ return this.bounds;};
 					boundsmodified = true;
 					makewms = false;
@@ -2059,7 +2059,7 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {
 
 	if(ground || makewms){
 		this.kml[this.kml.length-1].visibility = visible;
-		this.kml[this.kml.length-1].groundOverlays.push({"url":url,"bounds":bounds});
+		this.kml[this.kml.length-1].groundOverlays.push({"url":url,"bounds":wmsbounds});
 		}
 	 
 
