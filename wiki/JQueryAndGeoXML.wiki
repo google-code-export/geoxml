@@ -3,15 +3,14 @@
 
 = Introduction =
 
-GeoXml has a function that is defined as $ so does jquery.
-jquery has a nifty little thing that allows you to change the
-name of its $method to something else
+jQuery has a function that is defined as "$" *so does GeoXML*.
+
+jQuery has a nifty little thing that allows you to change the name of its $method to something else.
 
 = Details =
 
-This page
-[http://docs.jquery.com/Using_jQuery_with_Other_Libraries]
-gives you a few solutions
+[http://docs.jquery.com/Using_jQuery_with_Other_Libraries This page]
+gives you all possible solutions, here is the simplest.
 
 In a configuration where your jQuery `$(function(){...}` is above all the geoxml call and where jquery.js has been loaded before geoxml.js, here is a method that will make everything work :
 
