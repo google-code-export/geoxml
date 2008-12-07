@@ -1,0 +1,26 @@
+#labels Phase-Implementation,Phase-Deploy,Phase-Support
+#How to avoid conflicts between JQuery and geoxml.js
+
+= Introduction =
+
+GeoXml has a function that is defined as $ so does jquery.
+jquery has a nifty little thing that allows you to change the
+name of its $method to something else
+
+= Details =
+
+This page
+[http://docs.jquery.com/Using_jQuery_with_Other_Libraries]
+gives you a few solutions
+
+In a configuration where your jQuery `$(function(){...}` is above all the geoxml call and where jquery.js has been loaded before geoxml.js, here is a method that will make everything work :
+
+Change your global jQuery `$(function(){...}` to :
+{{{
+var $j = jQuery;
+$j(function(){
+    $j("#div").hide();
+    //other jquery code ....
+});
+}}}
+Then change every jquery snippet beginning with `$(...)` call to `$j(...)`.	
