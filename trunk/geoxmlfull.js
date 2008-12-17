@@ -2056,8 +2056,10 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {
 	 
 
 	if(networklink){
-		var re = /&amp;/;
+		var re = /&amp;/g;
 		url = url.replace(re,"&");
+		var nl = /\n/g;
+		url = url.replace(nl,"");
  		this.progress++;	
 		if(!top.standalone){
 			if(typeof this.proxy!="undefined") { url = this.proxy + escape(url); } 
@@ -2297,6 +2299,7 @@ GeoXml.prototype.ParseURL = function (){
 
 GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
     this.overlayman.miStart = new Date();
+
     if(!desc){desc = title;}
     var that = this;
     if(!sbid){ sbid = 0; }
@@ -2315,6 +2318,10 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
     var bar, sid, i;
     if(basename == "FeatureCollection"){
 		bar = $(this.basesidebar);
+		if(!title){ title = name; }
+		if(typeof title == "undefined"){
+			title = "Un-named GML";
+			}
 		if(title.length > this.maxtitlewidth){
 				this.maxtitlewidth = title.length;
 				}
@@ -2325,7 +2332,10 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
 		}
 
     if(basename =="gpx"){
-	if(!title){title = name;}
+	if(!title){ title = name; }
+	if(typeof title == "undefined"){
+		title = "Un-named GPX";
+		}
         this.title = title;
 	if(title.length >this.maxtitlewidth){
 		this.maxtitlewidth = title.length;
@@ -2372,6 +2382,9 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
 		}
 
 	if(!title){ title = name; }
+	if(typeof title == "undefined"){
+		title = "KML Document";
+		}
         this.title = title;
 	if(title.length >this.maxtitlewidth){
 		this.maxtitlewidth = title.length;
@@ -2401,8 +2414,10 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
 	if(placemarks.length <1){
 		placemarks = root.getElementsByTagName("entry");
 		}
- 
-    	if(!title){ title = name; }
+	if(!title){ title = name; }
+	if(typeof title == "undefined"){
+		title = "News Feed";
+		}
         this.title = title;
 	if(title.length >this.maxtitlewidth){
 		this.maxtitlewidth = title.length;
