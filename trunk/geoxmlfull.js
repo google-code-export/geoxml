@@ -1199,10 +1199,17 @@ GeoXml.prototype.makeDescription = function(elem, title, depth) {
  			currdeschead = ""; 
 			}
 		else {
-		
-			if(base.match(/#text|the_geom/)){}
-			else {	
-				currdeschead = "<b>"+base+"</b> :";
+			
+			if(base.match(/#text|the_geom|SchemaData|ExtendedData|#cdata-section/)){}
+			else {
+				if(base.match(/Snippet/i)){
+						}
+				else {	
+					if(base.match(/SimpleData/)){
+						base = subelem.getAttribute("name");
+						}
+					currdeschead = "<b>&nbsp;"+base+"&nbsp;</b> :";
+					}
 				}
 			val = subelem.nodeValue;
 			if(base.match(/(\S)*(name|title)(\S)*/i)){
@@ -1228,7 +1235,9 @@ GeoXml.prototype.makeDescription = function(elem, title, depth) {
 						}
 				
 					}
-			   if(val) { d += currdeschead + "<span>"+val+"</span><br />"; currdeschead = ""; }
+			   if(val && (val.match(/(\s)*/)!=true)) { 
+				d += currdeschead + "<span>"+val+"</span><br />"; currdeschead = ""; 
+			   	}
 			
 				if(subelem.childNodes.length){
 		 			var con = this.makeDescription(subelem, title, depth+1);
