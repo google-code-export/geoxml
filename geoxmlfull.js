@@ -2321,23 +2321,23 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
     var pname;
     var styles;
     var basename = root.nodeName;
-    var keepopen = this.opts.allfoldersopen;
+    var keepopen = that.opts.allfoldersopen;
     var bases = basename.split(":");
     if(bases.length>1){basename = bases[1];}
     var bar, sid, i;
     if(basename == "FeatureCollection"){
-		bar = $(this.basesidebar);
+		bar = $(that.basesidebar);
 		if(!title){ title = name; }
 		if(typeof title == "undefined"){
 			title = "Un-named GML";
 			}
-		if(title.length > this.maxtitlewidth){
-				this.maxtitlewidth = title.length;
+		if(title.length > that.maxtitlewidth){
+				that.maxtitlewidth = title.length;
 				}
 		bar.style.display="";
-		idx = this.overlayman.folders.length;
-		this.processGML(root,title,latlon,desc);
-		this.kml[0].folders.push(idx);
+		idx = that.overlayman.folders.length;
+		that.processGML(root,title,latlon,desc);
+		that.kml[0].folders.push(idx);
 		}
 
     if(basename =="gpx"){
@@ -2345,16 +2345,16 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
 	if(typeof title == "undefined"){
 		title = "Un-named GPX";
 		}
-        this.title = title;
-	if(title.length >this.maxtitlewidth){
-		this.maxtitlewidth = title.length;
+        that.title = title;
+	if(title.length >that.maxtitlewidth){
+		that.maxtitlewidth = title.length;
 		}
 
-	bar = $(this.basesidebar);
+	bar = $(that.basesidebar);
 	if(bar){ bar.style.display=""; }
-	idx = this.overlayman.folders.length;
-	this.processGPX(root, title, this.basesidebar, sbid);
-	this.kml[0].folders.push(idx);
+	idx = that.overlayman.folders.length;
+	that.processGPX(root, title, that.basesidebar, sbid);
+	that.kml[0].folders.push(idx);
 	}
     else {
 
@@ -2363,7 +2363,7 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
    	for (i = 0; i <styles.length; i++) {
     		sid= styles[i].getAttribute("id");
       		if(sid){ 
-     	   		this.handleStyle(styles[i],sid);
+     	   		that.handleStyle(styles[i],sid);
 	    		}
    	 	}
 	styles = root.getElementsByTagName("StyleMap");
@@ -2378,11 +2378,11 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
 					var pn = pair.childNodes[k].nodeName;
 					if(pn == "styleUrl"){
 						var pid = GXml.value(pair.childNodes[k]);
-						this.styles["#"+sid] = this.styles[pid];
+						that.styles["#"+sid] = that.styles[pid];
 						found = true;
 						}
 					if(pn == "Style"){
-						this.handleStyle(pair.childNodes[k],sid);
+						that.handleStyle(pair.childNodes[k],sid);
 						found = true;
 						}
 					}
@@ -2394,9 +2394,9 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
 	if(typeof title == "undefined"){
 		title = "KML Document";
 		}
-        this.title = title;
-	if(title.length >this.maxtitlewidth){
-		this.maxtitlewidth = title.length;
+        that.title = title;
+	if(title.length >that.maxtitlewidth){
+		that.maxtitlewidth = title.length;
 		}
 	var marknames = ["Placemark"];
 	var schema = root.getElementsByTagName("Schema");  
@@ -2408,12 +2408,12 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
 				}
 			}
 
-	bar = $(this.basesidebar);
+	bar = $(that.basesidebar);
 	if(bar){ bar.style.display=""; }
-	idx = this.overlayman.folders.length;
-	var paren = this.kml.length-1;
-	var fid = this.processKML(root, marknames, title, this.basesidebar, 0, paren);	
-	this.kml[0].folders.push(idx);
+	idx = that.overlayman.folders.length;
+	var paren = that.kml.length-1;
+	var fid = that.processKML(root, marknames, title, that.basesidebar, 0, paren);	
+	that.kml[0].folders.push(idx);
 	}
      else { 
 	placemarks = root.getElementsByTagName("item");
@@ -2427,51 +2427,51 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
 	if(typeof title == "undefined"){
 		title = "News Feed";
 		}
-        this.title = title;
-	if(title.length >this.maxtitlewidth){
-		this.maxtitlewidth = title.length;
+        that.title = title;
+	if(title.length >that.maxtitlewidth){
+		that.maxtitlewidth = title.length;
 		}
 	var style;
-	if(this.opts.baseicon){
-		style = this.opts.baseicon;
+	if(that.opts.baseicon){
+		style = that.opts.baseicon;
 		style.href = style.image;
 		}
 	else {
-        	style = new GIcon(G_DEFAULT_ICON,this.rssicon);
+        	style = new GIcon(G_DEFAULT_ICON,that.rssicon);
         	style.iconSize = new GSize(32,32);
         	style.shadowSize = new GSize(59,32);
         	style.dragCrossAnchor = new GPoint(2,8);
        		style.iconAnchor = new GPoint(16,32);
-		style.href = this.rssicon;
-        	shadow = this.rssicon.replace(".png",".shadow.png");
+		style.href = that.rssicon;
+        	shadow = that.rssicon.replace(".png",".shadow.png");
         	style.shadow = shadow +"_shadow.png";
 		}
 	style.color = "#00FFFF";
 	style.width = "3";
 	style.opacity = 0.50;
 	if(!desc){ desc = "RSS feed";}
-	this.kml[0].folders.push(this.overlayman.folders.length);
+	that.kml[0].folders.push(that.overlayman.folders.length);
     	if(placemarks.length) {
 		bar = $(that.basesidebar);
 		if(bar){ bar.style.display=""; }
-        	this.overlayman.folders.push([]);
-       		this.overlayman.folderhtml.push([]);
-		this.overlayman.folderhtmlast.push(0);
-		this.overlayman.folderBounds.push(new GLatLngBounds());
-        	idx = this.overlayman.folders.length-1;	
-		this.kml[idx].open = keepopen;
-		this.kml.push(new KMLObj(title,desc,keepopen,idx));
-		if(this.basesidebar) { 	
-			var folderid = this.createFolder(idx,title,this.basesidebar,this.globalicon,desc,null,keepopen,true); }
+        	that.overlayman.folders.push([]);
+       		that.overlayman.folderhtml.push([]);
+		that.overlayman.folderhtmlast.push(0);
+		that.overlayman.folderBounds.push(new GLatLngBounds());
+        	idx = that.kml.length-1;	
+		that.kml[idx].open = keepopen;
+		that.kml.push(new KMLObj(title,desc,keepopen,idx));
+		if(that.basesidebar) { 	
+			var folderid = that.createFolder(idx,title,that.basesidebar,that.globalicon,desc,null,keepopen,true); }
     		for (i = 0; i < placemarks.length; i++) {
-     			this.handlePlacemark(placemarks[i], idx, sbid, style);
+     			that.handlePlacemark(placemarks[i], idx, sbid, style);
     			}
 		}
 	}
 
     }
 
-    this.progress--;
+    that.progress--;
     if(that.progress == 0){
 	GEvent.trigger(that,"initialized");
 	if(!that.opts.sidebarid){
