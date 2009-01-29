@@ -594,8 +594,11 @@ if(this.opts.sidebarid){
   p.sidebarid = this.latestsidebar;
   p.onOver = function(){ 
 		if(this.sidebarid){
-			$(this.sidebarid).style.backgroundColor = this.hilite.color;
-			$(this.sidebarid).style.color = this.hilite.textcolor;
+			var bar = $(this.sidebarid);
+			if(bar){
+				bar.style.backgroundColor = this.hilite.color;
+				bar.style.color = this.hilite.textcolor;
+				}
 			}
 	 	if(this.geoxml.clickablepolys){
 			var poly = this.geoxml.polygons[this.polyindex];
@@ -614,8 +617,11 @@ if(this.opts.sidebarid){
 		 
   p.onOut = function(){ 
 		if(this.sidebarid){
-			$(this.sidebarid).style.background= "none";
-			$(this.sidebarid).style.color = "";
+			var bar = $(this.sidebarid);
+			if(bar){
+				bar.style.background= "none";
+				bar.style.color = "";
+				}
 			}
 		var poly;
 		if(this.geoxml.clickablepolys) {
@@ -719,7 +725,8 @@ GeoXml.prototype.finishLineJSON = function(po, idx, lastlinename){
 		}
   	m.onOver = function(){
 			if(!!this.sidebarid){
-				$(this.sidebarid).style.backgroundColor = this.hilite.color;
+				
+				if(bar){bar.style.backgroundColor = this.hilite.color;}
 				}
 			this.realColor = this.strokeColor;
 			mark.setStrokeStyle({color:this.hilite.color});
@@ -728,7 +735,8 @@ GeoXml.prototype.finishLineJSON = function(po, idx, lastlinename){
 			};
   	m.onOut = function(){ 	
 			if(!!this.sidebarid){
-				$(this.sidebarid).style.background = "none";
+				var bar = $(this.sidebarid);
+				if(bar){bar.style.background = "none"; }
 				}
 			mark.setStrokeStyle({color:this.realColor});
 			this.redraw(true);
