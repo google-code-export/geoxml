@@ -332,14 +332,19 @@ GeoXml.prototype.createMarker = function(point,name,desc,style,idx,instyle,visib
 	m.hilite = this.hilite;
 	m.geoxml = this;
 	GEvent.addListener(m,"mouseover", function() {
-		$(this.sidebarid).style.backgroundColor = this.hilite.color;
-		$(this.sidebarid).style.color = this.hilite.textcolor;
-		} 
-		);
+		var bar = $(this.sidebarid);
+		if(bar){
+			bar.style.backgroundColor = this.hilite.color;
+			bar.style.color = this.hilite.textcolor;
+			}
+		});
 	GEvent.addListener(m,"mouseout", function() {
-			$(this.sidebarid).style.background = "none"; 
-			$(this.sidebarid).style.color = "";
-			});
+		var bar = $(this.sidebarid);
+		if(bar) {
+			bar.style.background = "none"; 
+			bar.style.color = "";
+			}
+		});
 
   	} 
  
@@ -828,8 +833,8 @@ GeoXml.prototype.setFolders = function() {
 	var len = that.kml.length;
 	for(var i=1;i<len;i++){
 		var fid = that.kml[i].folderid;
-		var fob = document.getElementById(fid);
- 		if(fob != null) {
+		var fob = $(fid);
+ 		if(fob !== null) {
 			if(!!that.kml[i].open){
 				fob.style.display='block';
 				}
