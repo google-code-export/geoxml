@@ -839,7 +839,7 @@ GeoXml.prototype.parseJSON  = function (doc, title, latlon, desc, sbid){
 GeoXml.prototype.setFolders = function() {
 	var that = this;
 	var len = that.kml.length;
-	for(var i=1;i<len;i++){
+	for(var i=0;i<len;i++){
 		var fid = that.kml[i].folderid;
 		var fob = $(fid);
  		if(fob !== null) {
@@ -2349,7 +2349,7 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
 				}
 		bar.style.display="";
 		idx = that.overlayman.folders.length;
-		that.processGML(root,title,latlon,desc);
+		that.processGML(root,title,latlon,desc,(that.kml.length-1));
 		that.kml[0].folders.push(idx);
 		}
 
@@ -2528,7 +2528,7 @@ GeoXml.prototype.createFolder = function(idx, title, sbid, icon, desc, snippet, 
 	    };
 	    
 
-GeoXml.prototype.processGML = function(root,title, latlon, desc) {
+GeoXml.prototype.processGML = function(root,title, latlon, desc, me) {
     var that = this;
     var isWFS = false;
     var placemarks = [];
@@ -2627,11 +2627,15 @@ GeoXml.prototype.processGML = function(root,title, latlon, desc) {
 	    this.overlayman.folderhtmlast.push(0);
 	    this.overlayman.folderBounds.push(new GLatLngBounds());
 	    var idx = this.overlayman.folders.length-1;
- 	    this.kml.push(new KMLObj(title,desc,true,idx));
-    	    if(this.basesidebar) {    
+	    if(this.basesidebar) {    
 	 	    folderid = this.createFolder(idx,title,this.basesidebar,this.gmlicon,desc,null,true,true);
 		    } 
-	
+
+ 	    this.kml.push(new KMLObj(title,desc,true,idx));
+	    this.kml[me].open = that.opts.allfoldersopen; 
+	    this.kml[me].folderid = folderid;
+
+
 	if(isLatLon){
     		for (i = 0; i < placemarks.length; i++) {
      			this.handlePlacemark(placemarks[i],idx,0);
@@ -2645,8 +2649,15 @@ GeoXml.prototype.processGML = function(root,title, latlon, desc) {
 	    	}
 	}
 
+
+	
+
+
+
+
+
+
     // Is this the last file to be processed?
-    this.progress--;
 };
 
 // PolylineEncoder.js copyright Mark McClure  April/May 2007
