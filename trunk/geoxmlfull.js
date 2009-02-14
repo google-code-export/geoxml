@@ -48,7 +48,6 @@ function GeoXml(myvar, map, url, opts) {
   if(typeof this.opts.allfoldersopen !="undefined"){ this.forcefoldersopen = this.opts.allfoldersopen;}
  
   this.clickablepolys = true;
-  alert(typeof this.opts.clickablepolys);
   if(typeof this.opts.clickablepolys == "boolean"){
 	this.clickablepolys = this.opts.clickablepolys;
   	}
