@@ -48,15 +48,16 @@ function GeoXml(myvar, map, url, opts) {
   if(typeof this.opts.allfoldersopen !="undefined"){ this.forcefoldersopen = this.opts.allfoldersopen;}
  
   this.clickablepolys = true;
-  if(typeof this.opts.clickablepolys== "boolean"){
+  alert(typeof this.opts.clickablepolys);
+  if(typeof this.opts.clickablepolys == "boolean"){
 	this.clickablepolys = this.opts.clickablepolys;
   	}
   this.clickablemarkers = true;
-  if(typeof this.opts.clickablemarkers =="boolean" ){
+  if(typeof this.opts.clickablemarkers == "boolean" ){
        this.clickablemarkers = this.opts.clickablemarkers;  
        }
   this.clickablelines = true;
-  if(typeof this.opts.clickablelines =="boolean" ){
+  if(typeof this.opts.clickablelines == "boolean" ){
        this.clickablelines = this.opts.clickablelines;  
        }
   if(typeof this.opts.nolegend !="undefined"){
