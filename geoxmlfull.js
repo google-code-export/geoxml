@@ -560,9 +560,13 @@ GeoXml.prototype.finishPolygonJSON = function(op,idx,updatebound,lastpoly) {
   var p = new GPolygon.fromEncoded(op);
   var html = "<div style='font-weight: bold; font-size: medium; margin-bottom: 0em;'>"+op.name+"</div>"+"<div style='font-family: Arial, sans-serif;font-size: small;width:"+this.iwwidth+"px'>"+desc+"</div>";
  var newgeom = (lastpoly != "p_"+op.name);
-  if(newgeom){
+  if(newgeom && this.opts.sidebarid){
 	this.latestsidebar = that.myvar +"sb"+  this.overlayman.markers.length;
 	}
+  else {
+	this.latestsidebar = "";
+  	}
+
   if(that.opts.domouseover){
   	p.mess = html;
 	}
@@ -590,12 +594,11 @@ GeoXml.prototype.finishPolygonJSON = function(op,idx,updatebound,lastpoly) {
   that.polygons[that.polygons.length-1].push(n);
   p.polyindex = that.polygons.length-1;
   p.geomindex = len;
-if(this.opts.sidebarid){
   p.sidebarid = this.latestsidebar;
   p.onOver = function(){ 
 		if(this.sidebarid){
 			var bar = $(this.sidebarid);
-			if(bar){
+			if(!!bar){
 				bar.style.backgroundColor = this.hilite.color;
 				bar.style.color = this.hilite.textcolor;
 				}
@@ -618,7 +621,7 @@ if(this.opts.sidebarid){
   p.onOut = function(){ 
 		if(this.sidebarid){
 			var bar = $(this.sidebarid);
-			if(bar){
+			if(!!bar){
 				bar.style.background= "none";
 				bar.style.color = "";
 				}
@@ -635,10 +638,9 @@ if(this.opts.sidebarid){
 				}
 			}
 		};
- 	}
-
- GEvent.addListener(p,"mouseout",p.onOut);
- GEvent.addListener(p,"mouseover",p.onOver);
+ 
+GEvent.addListener(p,"mouseout",p.onOut);
+GEvent.addListener(p,"mouseover",p.onOver);
 
   op.description = escape(desc);
   this.kml[idx].marks.push(op);
