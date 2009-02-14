@@ -46,13 +46,19 @@ function GeoXml(myvar, map, url, opts) {
   this.latestsidebar = "";
   this.forcefoldersopen = false;
   if(typeof this.opts.allfoldersopen !="undefined"){ this.forcefoldersopen = this.opts.allfoldersopen;}
+ 
   this.clickablepolys = true;
-  this.clickablelines = true;
+  if(typeof this.opts.clickablepolys== "boolean"){
+	this.clickablepolys = this.opts.clickablepolys;
+  	}
   this.clickablemarkers = true;
-  if(typeof this.opts.clickablemarkers !="undefined"){ this.clickablemarkers = this.opts.clickablemarkers;}
-  if(typeof this.opts.clickablepolys !="undefined"){ this.clickablepolys = this.opts.clickablepolys;}
-  if(typeof this.opts.clickablelines !="undefined"){ this.clickablelines = this.opts.clickablelines;}
-  this.nolegend = false;
+  if(typeof this.opts.clickablemarkers =="boolean" ){
+       this.clickablemarkers = this.opts.clickablemarkers;  
+       }
+  this.clickablelines = true;
+  if(typeof this.opts.clickablelines =="boolean" ){
+       this.clickablelines = this.opts.clickablelines;  
+       }
   if(typeof this.opts.nolegend !="undefined"){
 		this.nolegend = true;
 		}
