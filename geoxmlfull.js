@@ -3100,9 +3100,12 @@ Clusterer.prototype.zoomToFolder = function (idx) {
 Clusterer.prototype.RemoveMarker = function ( marker ) {
     for ( var i = 0; i < this.markers.length; ++i ) {
 	if ( this.markers[i] == marker ) {
-	    if ( marker.onMap ){ 
+	    if ( marker.onMap ){
+		if(marker.label){
+			this.map.removeOverlay( marker.label );
+			} 
 		this.map.removeOverlay( marker );
-	   	 }
+	   	}
 	    for ( var j = 0; j < this.clusters.length; ++j ) {
 		var cluster = this.clusters[j];
 		if ( cluster!= null )
