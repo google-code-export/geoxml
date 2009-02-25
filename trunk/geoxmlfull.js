@@ -1527,13 +1527,14 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
 		for(l =0;l<poslist.length;l++){
 			coords = " ";
 			var plitem = GXml.value(poslist.item(l)) + " ";
+			plitem = plitem.replace(/(\s)+/g,' ');
 			cor = plitem.split(' ');
 			for(cc=0;cc<(cor.length-1);cc++){
-					if(cor[cc] && cor[cc]!=" " && !isNaN(parseFloat(cor[cc]))){
-						coords += ""+parseFloat(cor[cc])+","+parseFloat(cor[cc+1]);
+					if(!isNaN(parseFloat(cor[cc])) && !isNaN(parseFloat(cor[cc+1]))){
+						coords += ""+parseFloat(cor[cc+1])+","+parseFloat(cor[cc]);
 						coords += " ";
+						cc++;
 						}
-					cc++;
 					}
 			if(coords){
  				if(poslist.item(l).parentNode && (poslist.item(l).parentNode.nodeName == "gml:LineString") ){ line_count++; }
@@ -1659,11 +1660,11 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
 				cor = nv.split(' ');
 				coords = "";
 				for(cc=0;cc<(cor.length-1);cc++){
-					if(cor[cc] && cor[cc]!=" " && !isNaN(parseFloat(cor[cc]))){
+					if(!isNaN(parseFloat(cor[cc])) && !isNaN(parseFloat(cor[cc+1]))){
 						coords += ""+parseFloat(cor[cc+1])+","+parseFloat(cor[cc]);
-						if(cc>1 && cc<(cor.length-2)) { coords += " "; }
+						coords += " ";
+						cc++;
 						}
-					cc++;
 					}
 				if(coords != ""){
 					node = GXml.parse("<coordinates>"+coords+"</coordinates>");
@@ -1694,7 +1695,7 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
 	    }
       
      if(newcoords && typeof lat!="undefined"){
-        if(lat){
+       		 if(lat){
 		    var cs = ""+lon+","+lat+" ";
 		    node = GXml.parse("<coordinates>"+cs+"</coordinates>");
 		    coordset.push(node);
@@ -1710,7 +1711,7 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
 	} 
       coords = GXml.value(coordset[c]);
       coords += " ";
-      coords=coords.replace(/\s+/g," "); 
+      coords=coords.replace(/(\s)+/g," "); 
       // tidy the whitespace
       coords=coords.replace(/^ /,"");    
       // remove possible leading whitespace
@@ -1740,7 +1741,7 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
         // Build the list of points
         points = [];
         pbounds = new GLatLngBounds();
-       		for (p=0; p<path.length-1; p++) {
+       	 for (p=0; p<path.length-1; p++) {
          	 bits = path[p].split(",");
          	 point = new GLatLng(parseFloat(bits[1]),parseFloat(bits[0]));
          	 points.push(point);
@@ -1748,6 +1749,8 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
          	 }
 		this.overlayman.folderBounds[idx].extend(pbounds.getSouthWest());
 	 	this.overlayman.folderBounds[idx].extend(pbounds.getNorthEast());
+		this.bounds.extend(pbounds.getSouthWest());
+		this.bounds.extend(pbounds.getNorthEast());
 		if(!skiprender){ lines.push(points); }
 	    }
 	}
@@ -2491,7 +2494,6 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
 	}
 
     }
-
     that.progress--;
     if(that.progress == 0){
 	GEvent.trigger(that,"initialized");
