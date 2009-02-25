@@ -2439,8 +2439,8 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
 	if(bar){ bar.style.display=""; }
 	idx = that.overlayman.folders.length;
 	var paren = that.kml.length-1;
-	var fid = that.processKML(root, marknames, title, that.basesidebar, 0, paren);	
-	that.kml[0].folders.push(idx);
+	var fid = that.processKML(root, marknames, title, that.basesidebar,idx, paren);	
+	that.kml[paren].folders.push(idx);
 	}
      else { 
 	placemarks = root.getElementsByTagName("item");
@@ -2485,11 +2485,11 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
        		that.overlayman.folderhtml.push([]);
 		that.overlayman.folderhtmlast.push(0);
 		that.overlayman.folderBounds.push(new GLatLngBounds());
-        	idx = that.kml.length-1;	
-		that.kml[idx].open = keepopen;
+        	idx = that.overlayman.folders.length-1;	
 		that.kml.push(new KMLObj(title,desc,keepopen,idx));
+		that.kml[that.kml.length-1].open = keepopen;
 		if(that.basesidebar) { 	
-			var folderid = that.createFolder(idx,title,that.basesidebar,that.globalicon,desc,null,keepopen,true); }
+		var folderid = that.createFolder(idx,title,that.basesidebar,that.globalicon,desc,null,keepopen,true); }
     		for (i = 0; i < placemarks.length; i++) {
      			that.handlePlacemark(placemarks[i], idx, sbid, style);
     			}
