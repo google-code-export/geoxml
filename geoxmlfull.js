@@ -1332,8 +1332,8 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
 					if(cor[cc] && cor[cc]!=" " && !isNaN(parseFloat(cor[cc]))){
 						coords += ""+parseFloat(cor[cc])+","+parseFloat(cor[cc+1]);
 						coords += " ";
+						cc++;
 						}
-					cc++;
 					}
 			if(coords){
  				if(poslist.item(l).parentNode && (poslist.item(l).parentNode.nodeName == "gml:LineString") ){ line_count++; }
@@ -1523,7 +1523,10 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
 	    }
 	if(coordset.length <1){
 	   	coordset = [];
-	    	var poslist =mark.getElementsByTagName("gml:posList");
+	    	var poslist = mark.getElementsByTagName("gml:posList");
+		if(!poslist.length){ 
+			poslist = mark.getElementsByTagName("posList");
+	       		}
 		for(l =0;l<poslist.length;l++){
 			coords = " ";
 			var plitem = GXml.value(poslist.item(l)) + " ";
