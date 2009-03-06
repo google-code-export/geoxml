@@ -1,0 +1,41 @@
+#summary One-sentence summary of this page.
+GeoXml uses client side technology and is limited by javascripts cross domain restrictions
+a proxy script is a work around .. the following is an example (but a completely open example)
+
+= Introduction =
+
+You can and probably should restrict  the values allowed for the url, i $_GET['url']
+unless you are building a gateway or similar, use at your own risk.
+
+= Details =
+
+proxy.php src:
+
+<?php
+$post_data = $HTTP_RAW_POST_DATA;
+$header[] = "Content-type: text/xml";
+$header[] = "Content-length: ".strlen($post_data);
+$ch = curl_init( urldecode($_GET['url']) );
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+curl_setopt($ch, CURLOPT_TIMEOUT, 80);
+curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+curl_setopt($ch, CURLOPT_FAILONERROR, 0);
+curl_setopt($ch, CURLOPT_VERBOSE, 1);
+curl_setopt($ch, CURLOPT_COOKIEFILE, 1);
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+
+if ( strlen($post_data)>0 ){
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
+}
+
+$response = curl_exec($ch);
+if (curl_errno($ch)) {
+    print curl_error($ch);
+} else {
+
+    curl_close($ch);
+    print $response;
+}
+
+?>
