@@ -1,13 +1,8 @@
-#summary One-sentence summary of this page.
 GeoXml uses client side technology and is limited by javascripts cross domain restrictions
 a proxy script is a work around .. the following is an example (but a completely open example)
 
-= Introduction =
-
 You can and probably should restrict  the values allowed for the url, i $_GET['url']
 unless you are building a gateway or similar, use at your own risk.
-
-= Details =
 
 proxy.php src:
 
