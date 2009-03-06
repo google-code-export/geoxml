@@ -2361,7 +2361,7 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
 		if(title.length > that.maxtitlewidth){
 				that.maxtitlewidth = title.length;
 				}
-		bar.style.display="";
+		if(bar){bar.style.display="";}
 		idx = that.overlayman.folders.length;
 		that.processGML(root,title,latlon,desc,(that.kml.length-1));
 		that.kml[0].folders.push(idx);
