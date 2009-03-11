@@ -333,7 +333,6 @@ GeoXml.prototype.createMarker = function(point,name,desc,style,idx,instyle,visib
     	var n = this.overlayman.markers.length; 
 	var blob = "&nbsp;<img style=\"vertical-align:text-top;padding:0;margin:0\" height=\"16\" border=\"0\" src=\""+href+"\">&nbsp;";
  	parm =  this.myvar+"$$$" +name + "$$$marker$$$" + n +"$$$" + blob + "$$$" +visible+"$$$null"; 
-		
 	m.sidebarid = this.myvar+"sb"+n;
 	m.hilite = this.hilite;
 	m.geoxml = this;
@@ -392,6 +391,7 @@ GeoXml.getDescription = function(node){
     };
 
 GeoXml.prototype.processLine = function (pnum, lnum, idx){
+	var that = this;
 	var op = this.polylines[pnum];
 	var line = op.lines[lnum];
 	var obj;
@@ -438,7 +438,7 @@ GeoXml.prototype.processLine = function (pnum, lnum, idx){
 	if(lnum == 0){
 	 	if(this.opts.sidebarid) {
     			var blob = '&nbsp;&nbsp;<span style=";border-left:'+op.width+'px solid '+op.color+';">&nbsp;</span> ';
-			parm =  this.myvar+"$$$" +op.name + "$$$polyline$$$" + n +"$$$" + blob + "$$$" +op.visible+"$$$"+pnum+"$$$";
+			parm =  this.myvar+"$$$" +op.name + "$$$polyline$$$" + n +"$$$" + blob + "$$$" +op.visibility+"$$$"+pnum+"$$$";
 			this.latestsidebar = this.myvar +"sb"+n;
  			}
 		}
@@ -497,8 +497,11 @@ GeoXml.prototype.processLine = function (pnum, lnum, idx){
 	if(this.geoxml.clickablelines||doit){ this.map.openInfoWindowHtml(point, html, iwoptions); }} );
 	obj.name = op.name;
         obj.description = escape(op.description);
+	if(that.hideall) { 
+		op.visibility = false;
+		}
 	obj.visibility = op.visibility;
- 	this.kml[idx].marks.push(obj);
+ 	this.kml[idx].marks.push(obj); 
  	this.overlayman.AddMarker(p, op.name, idx, parm, op.visibility);
 };
 
@@ -510,7 +513,7 @@ GeoXml.prototype.createPolyline = function(lines,color,width,opacity,pbounds,nam
 		else { p.opacity = opacity; }
   	if(!width){p.width = 2;}
  		 else{  p.width = width; }
-  	p.idx = idx;
+  	p.idx = idx; 
 	p.visibility = visible;
 	if(this.hideall){ p.visibility = false; }
 	p.name = name;
@@ -871,8 +874,9 @@ GeoXml.prototype.recurseJSON = function (doc, title, desc, sbid, depth){
 	if(!description && desc){ description = desc; }
 	var keepopen = that.forcefoldersopen;
 	if(doc.open){ keepopen = true; }
-	var visible = false;
+	var visible = true;
 	if(typeof doc.visibility!="undefined" && doc.visibility){visible = true; }
+	if(that.hideall){visible = false;}
        	var snippet = doc.snippet;
 	var idx = that.overlayman.folders.length;
 	if(!description){ description = name; }
@@ -1285,11 +1289,10 @@ GeoXml.prototype.makeDescription = function(elem, title, depth) {
 	};
 
 GeoXml.prototype.randomColor = function(){ 
-	var hex="0123456789abcdef";
 	var color="#";
 	for (var i=0;i<6;i++){
-		var idx = parseInt(Math.random()*16,10);
-		color += hex.substring(idx,idx+1);
+		var idx = parseInt(Math.random()*16,10)+1;
+		color += idx.toString(16);
 		}
 	return color;
 	};
@@ -1302,6 +1305,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
      var styleid = 0;
      var lat, lon;
      var visible = true;
+     if(this.hideall){visible = false;}
      var fill = true;
      var outline = true;
      var width, color, opacity, fillOpacity, fillColor;
@@ -1486,7 +1490,8 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
      desc = "";
      var styleid = 0;
      var lat, lon;
-     var visible =  true;
+     var visible = true;
+     if(this.hideall){visible = false; }
      var newcoords = false;
      var outline;
      var opacity;
@@ -1507,8 +1512,7 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
      var box_count=0;
      var line_count=0;
      var poly_count=0;
-    var coords = "";
-    // if(kml_id)alert("id found handling placemark"+kml_id);
+     var coords = "";
      l = mark.getAttribute("lat");
      if(typeof l!="undefined"){ lat = l; }
      l = mark.getAttribute("lon");
@@ -1654,7 +1658,7 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
 						}
 					}
 				break;
-
+			case "Style":
 			case "style":
 				style = this.handleStyle(mark.childNodes.item(ln));
 				break;
@@ -1944,8 +1948,8 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {
 	var desc= "";
 	var snip ="";
 	var i;
-	
-	var visible = true;
+	var visible = false;
+	if(!this.hideall){visible = true; }
 	var boundsmodified = false;
         var networklink = false;
 	var url;
@@ -2073,7 +2077,7 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {
 		this.overlayman.folderBounds.push(new GLatLngBounds());
   		this.kml.push(new KMLObj(title, desc, false, idx));
 		me = this.kml.length - 1;
-		folderid = this.createFolder(idx, title, sbid, icon, desc, snip, false, visible);
+		folderid = this.createFolder(idx, title, sbid, icon, desc, snip, true, visible);
 		} 
 	else {
 		folderid = sbid;
@@ -2260,7 +2264,7 @@ GeoXml.prototype.processGPX = function(node,title,sbid,depth) {
     		this.overlayman.folderhtmlast.push(0);
 		this.overlayman.folderBounds.push(new GLatLngBounds());
 		this.kml.push(new KMLObj(title,desc,open,idx));
-		folderid = this.createFolder(idx, title, sbid, icon, desc, snip, open, visible);
+		folderid = this.createFolder(idx, title, sbid, icon, desc, snip, true, visible);
 		} 
  	 else {
 		folderid = sbid;
@@ -2335,7 +2339,6 @@ GeoXml.prototype.ParseURL = function (){
 
 GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
     this.overlayman.miStart = new Date();
-
     if(!desc){desc = title;}
     var that = this;
     if(!sbid){ sbid = 0; }
@@ -2348,7 +2351,7 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
     var pname;
     var styles;
     var basename = root.nodeName;
-    var keepopen = that.opts.allfoldersopen;
+    var keepopen = that.forcefoldersopen;
     var bases = basename.split(":");
     if(bases.length>1){basename = bases[1];}
     var bar, sid, i;
@@ -2489,7 +2492,9 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
 		that.kml.push(new KMLObj(title,desc,keepopen,idx));
 		that.kml[that.kml.length-1].open = keepopen;
 		if(that.basesidebar) { 	
-		var folderid = that.createFolder(idx,title,that.basesidebar,that.globalicon,desc,null,keepopen,true); }
+		var visible = true;
+    		if(that.hideall){ visible = false;}
+		var folderid = that.createFolder(idx,title,that.basesidebar,that.globalicon,desc,null,keepopen,visible); }
     		for (i = 0; i < placemarks.length; i++) {
      			that.handlePlacemark(placemarks[i], idx, sbid, style);
     			}
@@ -2555,6 +2560,9 @@ GeoXml.prototype.processGML = function(root,title, latlon, desc, me) {
     var coor, coorstr;
     var x, y, k, i;
     var name = title;
+    var visible = true;
+    if(this.hideall){visible = false; }
+    var keepopen = that.allfoldersopen;
     var pt1, pt2, box;
     	for (var ln = 0; ln < root.childNodes.length; ln++) {
 		var kid = root.childNodes.item(ln).nodeName;
@@ -2640,10 +2648,10 @@ GeoXml.prototype.processGML = function(root,title, latlon, desc, me) {
 	    this.overlayman.folderhtmlast.push(0);
 	    this.overlayman.folderBounds.push(new GLatLngBounds());
 	    var idx = this.overlayman.folders.length-1;
-	    if(this.basesidebar) {    
-	 	    folderid = this.createFolder(idx,title,this.basesidebar,this.gmlicon,desc,null,true,true);
-		    } 
-
+	    if(this.basesidebar) {
+	//	alert("before createFolder "+visible);
+		folderid = this.createFolder(idx,title,this.basesidebar,this.gmlicon,desc,null,keepopen,visible);
+	    	}
  	    this.kml.push(new KMLObj(title,desc,true,idx));
 	    this.kml[me].open = that.opts.allfoldersopen; 
 	    this.kml[me].folderid = folderid;
@@ -3078,7 +3086,7 @@ Clusterer.prototype.AddMarker = function (marker, title, idx, sidebar, visible, 
 	        if(bounds.intersects(b)){ vis = true;  }
 		}
 	}
-    if(forcevisible){ vis = true; }
+     if(forcevisible){ vis = true; }
    // var id = this.markers.length;
     this.markers.push(marker);
 
