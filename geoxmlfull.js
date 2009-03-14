@@ -3305,8 +3305,12 @@ Clusterer.Display = function (clusterer)
 	{
 	marker = clusterer.markers[nonvisibleMarkers[i]];
 	if (marker.onMap){
+	    if(marker.label){
+		clusterer.map.removeOverlay(marker.label);
+	    	}
 	    clusterer.map.removeOverlay(marker);
 	    marker.onMap = false;
+	     
 	    }
 	}
 
