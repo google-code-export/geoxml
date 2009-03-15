@@ -3464,7 +3464,11 @@ Clusterer.Display = function (clusterer)
 			if(!!marker.label){ marker.label.hide(); }
 	       		}
 		}
-	    else { clusterer.map.addOverlay(marker);}
+	    else { 
+		    clusterer.map.addOverlay(marker);
+		    if(!!marker.label){ clusterer.map.addOverlay(marker.label); }
+	    
+	    }
 	    marker.onMap = true;
 	    }
 	}
