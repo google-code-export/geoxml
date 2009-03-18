@@ -3,9 +3,10 @@ a proxy script is a work around .. the following is an example (but a completely
 
 be sure to define the path to your proxy as a global variable on the page
 var proxy = "/cgi-bin/proxy.php?";
-or define your urls in terms of your proxy
 
-var url = proxy+"url="+datasourceurl;
+or define your urls in terms of your proxy
+var proxypath = "/cgi-bin/proxy.php?";
+var url = proxypath+"url="+datasourceurl;
 
 
 You can and probably should restrict  the values allowed for the url, i $_GET['url']
