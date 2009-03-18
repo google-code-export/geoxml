@@ -1017,11 +1017,11 @@ GeoXml.prototype.saveJSON = function(){
 
 GeoXml.prototype.hide = function(){
 	this.toggleContents(0,false);
-	}
+	};
 
 GeoXml.prototype.show = function(){
 	this.toggleContents(0,true);
-	} 
+	};
 
 GeoXml.prototype.toggleContents = function(i,show){
  	var f = this.overlayman.folders[i];
