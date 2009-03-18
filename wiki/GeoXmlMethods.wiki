@@ -1,0 +1,14 @@
+=Methods on GeoXml=
+
+*hide();*
+
+*show();*
+
+*toggleContents(foldernumber,boolean);*
+
+*clear();*
+
+//to reuse after clearing push new urls on to your instances urls array, then call parse.
+
+geoxmlvar.urls.push("newdatasource");
+geoxmlvar.parse();
