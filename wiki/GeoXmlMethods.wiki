@@ -1,13 +1,13 @@
 =Methods on GeoXml=
 
 *hide();*
+//hides all content and toggles any side bar entries to match
 
 *show();*
-
-*toggleContents(foldernumber,boolean);*
+//shows all content and toggles any side bar entries to match
 
 *clear();*
-
+//removes all content and empties sidebar area associated with this instance of GeoXml.
 //to reuse after clearing push new urls on to your instances urls array, then call parse.
 
 geoxmlvar.urls.push("newdatasource");
