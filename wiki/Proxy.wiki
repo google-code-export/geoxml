@@ -1,11 +1,18 @@
 GeoXml uses client side technology and is limited by javascripts cross domain restrictions
 a proxy script is a work around .. the following is an example (but a completely open example)
 
+be sure to define the path to your proxy as a global variable on the page
+var proxy = "/cgi-bin/proxy.php?";
+or define your urls in terms of your proxy
+
+var url = proxy+"url="+datasourceurl;
+
+
 You can and probably should restrict  the values allowed for the url, i $_GET['url']
 unless you are building a gateway or similar, use at your own risk.
 
 proxy.php src:
-
+{{{
 <?php
 $post_data = $HTTP_RAW_POST_DATA;
 $header[] = "Content-type: text/xml";
@@ -34,3 +41,4 @@ if (curl_errno($ch)) {
 }
 
 ?>
+}}}
