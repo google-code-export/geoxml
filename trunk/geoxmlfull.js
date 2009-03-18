@@ -1015,6 +1015,13 @@ GeoXml.prototype.saveJSON = function(){
 		}
 	};
 
+GeoXml.prototype.hide = function(){
+	this.toggleContents(0,false);
+	}
+
+GeoXml.prototype.show = function(){
+	this.toggleContents(0,true);
+	} 
 
 GeoXml.prototype.toggleContents = function(i,show){
  	var f = this.overlayman.folders[i];
@@ -1029,7 +1036,9 @@ GeoXml.prototype.toggleContents = function(i,show){
 			if(cb){ cb.checked = true; }
 			if(m.hide) { m.show();  }
 				else { this.map.addOverlay(m); }
-			if(!!m.label){ m.label.show(); }
+			if(!!m.label){
+			       	m.label.show(); 
+				}
 			}
 		}
 	else {
