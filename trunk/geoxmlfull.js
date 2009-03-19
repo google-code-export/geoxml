@@ -1016,11 +1016,11 @@ GeoXml.prototype.saveJSON = function(){
 	};
 
 GeoXml.prototype.hide = function(){
-	this.toggleContents(0,false);
+	this.toggleContents(1,false);
 	};
 
 GeoXml.prototype.show = function(){
-	this.toggleContents(0,true);
+	this.toggleContents(1,true);
 	};
 
 GeoXml.prototype.toggleContents = function(i,show){
