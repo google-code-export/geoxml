@@ -1034,13 +1034,15 @@ GeoXml.prototype.toggleContents = function(i,show){
 		this.mb.showMess("folder "+f+" not defined");
 		return;
 		}
-
+	
 	if(show){
 	for (j=0;j<f.length;j++){
 			m = this.overlayman.markers[f[j]];
-		        m.hidden = false;	
-			cb = $(this.myvar+''+f[j]+'CB');
-			if(cb){ cb.checked = true; }
+		        m.hidden = false;
+			if(this.basesidebar){	
+				cb = $(this.myvar+''+f[j]+'CB');
+				if(cb && typeof cb!="undefined"){ cb.checked = true; }
+				}
 			if(m.hide) { m.show();  }
 				else { this.map.addOverlay(m); }
 			if(!!m.label){
@@ -1052,8 +1054,10 @@ GeoXml.prototype.toggleContents = function(i,show){
 	   for (j=0;j<f.length;j++){
 			m = this.overlayman.markers[f[j]];
 			m.hidden = true;
-			cb = $(this.myvar+''+f[j]+'CB');
-			if(cb){cb.checked = false;}
+			if(this.basesidebar){
+				cb = $(this.myvar+''+f[j]+'CB');
+				if(cb && typeof cb!="undefined" ){cb.checked = false;}
+				}
 			if(m.hide) { m.hide(); }
 				else { this.map.removeOverlay(m); }
 			if(!!m.label){ m.label.hide(); }
@@ -1064,8 +1068,10 @@ GeoXml.prototype.toggleContents = function(i,show){
 	if(typeof sf!="undefined"){
  		for (j=0;j<sf.length;j++){
 			if(sf[j]!=i){
-	 			cb = $(this.myvar+''+sf[j]+'FCB');
-				if(cb){ cb.checked = (!!show);}
+				if(this.basesidebar){
+	 				cb = $(this.myvar+''+sf[j]+'FCB');
+					if(cb && typeof cb!="undefined"){ cb.checked = (!!show);}
+					}
 				this.toggleContents(sf[j],show);
 				}
 			}
