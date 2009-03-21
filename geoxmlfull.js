@@ -148,7 +148,9 @@ GeoXml.prototype.clear = function(idx) {
 	this.bounds = new GLatLngBounds();
   	this.overlayman = new Clusterer(this.map, this);
   	this.overlayman.rowHeight = 20;
-	$(this.basesidebar).innerHTML = "";
+	if(typeof this.basesidebar !="undefined" && this.basesidebar !=""){
+		$(this.basesidebar).innerHTML = "";
+		}
   	this.overlayman.folders.push([]);
   	this.overlayman.subfolders.push([]);
   	this.overlayman.folderhtml.push([]);
@@ -1028,6 +1030,11 @@ GeoXml.prototype.toggleContents = function(i,show){
 	var cb;
 	var j;
 	var m;
+	if(typeof f == "undefined"){
+		this.mb.showMess("folder "+f+" not defined");
+		return;
+		}
+
 	if(show){
 	for (j=0;j<f.length;j++){
 			m = this.overlayman.markers[f[j]];
