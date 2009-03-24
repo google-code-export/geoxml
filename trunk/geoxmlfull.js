@@ -855,7 +855,7 @@ GeoXml.prototype.setFolders = function() {
 	for(var i=0;i<len;i++){
 		var fid = that.kml[i].folderid;
 		var fob = $(fid);
- 		if(fob !== null) {
+ 		if(fob !== null && fid!= that.opts.sidebarid) {
 			if(!!that.kml[i].open){
 				fob.style.display='block';
 				}
