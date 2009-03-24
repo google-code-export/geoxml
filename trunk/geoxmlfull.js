@@ -1621,6 +1621,18 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
      					document.body.appendChild(preload);
 					preload.innerHTML = desc;
 					}
+			    	if(desc.match(/^http:\/\//i)){
+					var flink = desc.split(/(\s)+/);
+					if(flink.length>1){
+						desc = "<a href=\""+flink[0]+"\">"+flink[0]+"</a>";
+						for(var i=1;i<flink.length;i++){
+							desc += flink[i];
+							}
+						}
+					else {
+						desc = "<a href=\""+desc+"\">"+desc+"</a>";
+						}	
+					}
 				break;
 			case "visibility":
  				if(nv == "0"){ visible = false; }
