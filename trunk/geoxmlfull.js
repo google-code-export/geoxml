@@ -32,6 +32,7 @@ function GeoXml(myvar, map, url, opts) {
  
   this.mb.style = this.opts.messagestyle || { backgroundColor: "silver"};
   this.alwayspop = this.opts.alwaysinfopop || false;
+  this.quiet = this.opts.quiet || false;
   // infowindow styles
   this.titlestyle = this.opts.titlestyle || 'style = "font-family: arial, sans-serif;font-size: medium;font-weight:bold;font-size: 100%;"';
   this.descstyle = this.opts.descstyle || 'style = "font-family: arial, sans-serif;font-size: small;padding-bottom:.7em;"';
@@ -3483,7 +3484,7 @@ Clusterer.Display = function (clusterer)
 
 	}
 
-    if(!update_side && viscount){
+    if(!update_side && viscount && (clusterer.paren.quiet != true)){
 		clusterer.paren.mb.showMess("Showing "+viscount+"  GeoXML elements",500);
 		}
 
