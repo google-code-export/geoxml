@@ -1646,8 +1646,8 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
 				else {
 					var href = mark.childNodes.item(ln).getAttribute("href");
 					if(href){
-						var imtype =mark.childNodes.item(ln).getAttribute("type");
-					        if(imtype.match(/image/)){
+						var imtype = mark.childNodes.item(ln).getAttribute("type");
+					        if(imtype && imtype.match(/image/)){
 								desc += "<img style=\"width:256px\" src='"+href+"' />";
 							}
 						}
