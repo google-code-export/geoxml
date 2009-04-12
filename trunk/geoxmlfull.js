@@ -114,6 +114,9 @@ function GeoXml(myvar, map, url, opts) {
   this.overlayman.folderBounds.push(new GLatLngBounds()); 
   this.wmscount = 0;
   this.labels = new GTileLayerOverlay(G_HYBRID_MAP.getTileLayers()[1]);
+  this.unnamedpath="un-named path";
+  this.unnamedplace="un-named place";
+  this.unnamedarea="un-named area";
   }
 
 
@@ -1238,12 +1241,12 @@ GeoXml.prototype.makeDescription = function(elem, title, depth) {
 		var nn = subelem.nodeName;
 		var sec = nn.split(":");
 		var base = "";
-		if(sec.length>1){ 
+		if(sec.length>1){	       
 			base = sec[1];
 			}
 		else { base = nn;}
  	
-		if(base.match(/^(visible|visibility|boundedBy|StyleMap|styleUrl|posList|coordinates|Style|Polygon|LineString|Point|LookAt|Envelope|Box|MultiPolygon)/)){
+		if(base.match(/^(visible|visibility|boundedBy|StyleMap|styleUrl|posList|coordinates|Style|Polygon|LineString|Point|LookAt|Envelope|Box|MultiPolygon|where)/)){
  			currdeschead = ""; 
 			}
 		else {
@@ -1260,6 +1263,12 @@ GeoXml.prototype.makeDescription = function(elem, title, depth) {
 					}
 				}
 			val = subelem.nodeValue;
+			if(nn == "link"){
+					var href = subelem.getAttribute("href");
+					if(href){
+						val = '<a href="' + href + '">' + href + '</a>';
+						}
+				}
 			if(base.match(/(\S)*(name|title)(\S)*/i)){
 			 	if(!val){ val = GXml.value(subelem); }
 				title = val;
@@ -1377,7 +1386,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
 			for(p=0;p<pos.length;p++){
 				nv = GXml.value(pos.item(p));
 				cor = nv.split(" ");
-				node = GXml.parse("<coordinates>"+cor[0]+","+cor[1]+"</coordinates>");
+				node = GXml.parse("<coordinates>"+cor[1]+","+cor[0]+"</coordinates>");
 				if(coordset.push){ coordset.push(node); }
 				}
 			}
@@ -1429,7 +1438,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
         that.bounds.extend(point);
         // Does the user have their own createmarker function?
 	if(!skiprender){
-		if(!name){ name="un-named place"; }
+		if(typeof name == "undefined"){ name= that.unnamedplace; }
         	if (!!that.opts.createmarker) {
           		that.opts.createmarker(point, name, desc, styleid, idx, null, visible);
         		} 
@@ -1468,7 +1477,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
             opacity = this.style.opacity;
           }
           // Does the user have their own createpolyline function?
-	if(!name){ name="un-named path"; }
+	  if(typeof name == "undefined"){ name=that.unnamedpath; }
           if (!!that.opts.createpolyline) {
             that.opts.createpolyline(lines,color,width,opacity,pbounds,name,desc,idx,visible);
           } else {
@@ -1495,9 +1504,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
 	color = this.randomColor();
 	fill = 1;
 	outline = 1;
-
-	if(!name){ name="un-named area"; }
-
+	if(typeof name == "undefined"){ name=that.unnamedarea; }
  	if (!!that.opts.createpolygon) {
             that.opts.createpolygon(lines,color,width,opacity,fillColor,fillOpacity,pbounds,name,desc,idx,visible,fill,outline);
           } else {
@@ -1581,7 +1588,7 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
 			for(p=0;p<pos.length;p++){
 				nv = GXml.value(pos.item(p))+" ";
 				cor = nv.split(' ');
-				node = GXml.parse("<coordinates>"+cor[0]+","+cor[1]+"</coordinates>");
+				node = GXml.parse("<coordinates>"+cor[1]+","+cor[0]+"</coordinates>");
 				if(coordset.push){ coordset.push(node); }
 				}
 			}
@@ -3340,12 +3347,11 @@ Clusterer.Display = function (clusterer)
 	{
 	marker = clusterer.markers[nonvisibleMarkers[i]];
 	if (marker.onMap){
-	    if(marker.label){
+	    if(!!marker.label){
 		clusterer.map.removeOverlay(marker.label);
 	    	}
 	    clusterer.map.removeOverlay(marker);
 	    marker.onMap = false;
-	     
 	    }
 	}
 
@@ -3362,7 +3368,7 @@ Clusterer.Display = function (clusterer)
 		 		}
 		if (!vis && cluster.onMap) {
 	    		clusterer.map.removeOverlay(cluster.marker);
-	   		    cluster.onMap = false;
+	   		cluster.onMap = false;
 	    		}
 		}
 	}
@@ -3451,6 +3457,9 @@ Clusterer.Display = function (clusterer)
 			{
 			clusterer.map.removeOverlay( marker );
 			marker.onMap = false;
+			if(!!marker.label){
+				clusterer.map.removeOverlay(marker.label);
+				}
 			}
 		    }
 		}
@@ -3489,21 +3498,21 @@ Clusterer.Display = function (clusterer)
 		}
 
     // Display the visible markers not already up and not in clusters.
-    for ( i = 0; i < visibleMarkers.length; ++i )
-	{
+    for ( i = 0; i < visibleMarkers.length; ++i ) {
 	marker = clusterer.markers[visibleMarkers[i]];
 	if ( marker!= null && ! marker.onMap && ! marker.inCluster) {
 	    if (marker.addedToMap!= null ) { marker.addedToMap(); }
 	    if(marker.hidden){
-		if(marker.hide){ clusterer.map.addOverlay(marker); marker.hide();
+		if(marker.hide){ 
+			clusterer.map.addOverlay(marker); 
+			marker.hide();
 			if(!!marker.label){ marker.label.hide(); }
 	       		}
 		}
 	    else { 
-		    clusterer.map.addOverlay(marker);
-		    if(!!marker.label){ clusterer.map.addOverlay(marker.label); }
-	    
-	    }
+		clusterer.map.addOverlay(marker);
+		if(!!marker.label){ marker.label.show(); } 
+		}
 	    marker.onMap = true;
 	    }
 	}
