@@ -10,5 +10,16 @@ a { text-decoration:none }
 #the_side_bar ul li ul li { font-size: 10px; }
 #the_side_bar ul li ul li ul li { font-size: 9px; }
 #the_side_bar ul li ul li ul li ul li { font-size: 8px; } 
+
+
+#the_side_bar2 li { list-style: none; margin:0px;padding:0px } 
+#the_side_bar2 ul { margin-left:0px; padding:0px; }
+	/* Control how "sided out" the tree is */
+#the_side_bar2 ul  ul , #the_side_bar ul li { margin-left:8px; padding:0px; } 
+	/* Format menu items differently depending on what level of the tree they are in */
+#the_side_bar2 ul li { font-size:  11px; }
+#the_side_bar2 ul li ul li { font-size: 10px; }
+#the_side_bar2 ul li ul li ul li { font-size: 9px; }
+#the_side_bar2 ul li ul li ul li ul li { font-size: 8px; } 
 .inView { display:block }
 .outView { color:silver; opacity:0.4; alpha(opacity=40) }

@@ -3242,7 +3242,7 @@ Clusterer.Display = function (clusterer)
 			count = curlen;
 			}
 		else {
-			alert("target folder not found "+destid);
+		//	alert("target folder not found "+destid);
 			}
 		}
 		}
