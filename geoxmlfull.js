@@ -3156,7 +3156,7 @@ Clusterer.prototype.RemoveMarker = function ( marker ) {
     for ( var i = 0; i < this.markers.length; ++i ) {
 	if ( this.markers[i] == marker ) {
 	    if ( marker.onMap ){
-		if(marker.label){
+		if(!!marker.label){
 			this.map.removeOverlay( marker.label );
 			} 
 		this.map.removeOverlay( marker );
@@ -3511,7 +3511,9 @@ Clusterer.Display = function (clusterer)
 		}
 	    else { 
 		clusterer.map.addOverlay(marker);
-		if(!!marker.label){ marker.label.show(); } 
+		if(!!marker.label){ 
+			clusterer.map.addOverlay(marker.label);
+	       		} 
 		}
 	    marker.onMap = true;
 	    }
