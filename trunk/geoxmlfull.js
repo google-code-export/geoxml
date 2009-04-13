@@ -1777,7 +1777,7 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
         this.overlayman.folderBounds[idx].extend(point);
         // Does the user have their own createmarker function?
 	if(!skiprender){
-		if(!name){name="un-named place";}
+		if(typeof name == "undefined"){name=unnamedplace;}
         	if (!!that.opts.createmarker) {
           		that.opts.createmarker(point, name, desc, styleid, idx, style, visible, kml_id);
         		} 
@@ -1820,7 +1820,7 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
             opacity = this.style.opacity;
           }
           // Does the user have their own createmarker function?
-	if(!name){ name="un-named path"; }
+	if(typeof name == "undefined" ){ name=unnamedpath; }
           if (!!that.opts.createpolyline) {
             that.opts.createpolyline(lines,color,width,opacity,pbounds,name,desc,idx,visible,kml_id);
           } else {
@@ -1845,7 +1845,7 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
 	if(typeof fill == "undefined"){ fill = 1; }
 	if(typeof color == "undefined"){ color = this.style.color; }
 	if(typeof fillcolor == "undefined"){ fillcolor = this.randomColor(); }
-	if(!name){ name="un-named area"; }
+	if(typeof name == "undefined" ){ name=unnamedarea; }
  	if (!!that.opts.createpolygon) {
             that.opts.createpolygon(lines,color,width,opacity,fillcolor,fillOpacity,pbounds,name,desc,idx,visible,fill,outline,kml_id);
           } else {
