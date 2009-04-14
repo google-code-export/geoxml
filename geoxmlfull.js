@@ -3155,12 +3155,12 @@ Clusterer.prototype.zoomToFolder = function (idx) {
 Clusterer.prototype.RemoveMarker = function ( marker ) {
     for ( var i = 0; i < this.markers.length; ++i ) {
 	if ( this.markers[i] == marker ) {
-	    if ( marker.onMap ){
-		if(!!marker.label){
-			this.map.removeOverlay( marker.label );
-			} 
+	    if (marker.onMap){
 		this.map.removeOverlay( marker );
 	   	}
+	    if(!!marker.label){
+		this.map.removeOverlay( marker.label );
+		} 
 	    for ( var j = 0; j < this.clusters.length; ++j ) {
 		var cluster = this.clusters[j];
 		if ( cluster!= null )
@@ -3348,7 +3348,8 @@ Clusterer.Display = function (clusterer)
 	marker = clusterer.markers[nonvisibleMarkers[i]];
 	if (marker.onMap){
 	    if(!!marker.label){
-		clusterer.map.removeOverlay(marker.label);
+		//clusterer.map.removeOverlay(marker.label);
+		marker.label.hide();
 	    	}
 	    clusterer.map.removeOverlay(marker);
 	    marker.onMap = false;
@@ -3458,7 +3459,8 @@ Clusterer.Display = function (clusterer)
 			clusterer.map.removeOverlay( marker );
 			marker.onMap = false;
 			if(!!marker.label){
-				clusterer.map.removeOverlay(marker.label);
+				marker.label.hide();
+			//	clusterer.map.removeOverlay(marker.label);
 				}
 			}
 		    }
@@ -3506,13 +3508,17 @@ Clusterer.Display = function (clusterer)
 		if(marker.hide){ 
 			clusterer.map.addOverlay(marker); 
 			marker.hide();
-			if(!!marker.label){ marker.label.hide(); }
+			if(!!marker.label){ 
+				marker.label.hide();
+			//	marker.removeOverlay(marker.label); 
+				}
 	       		}
 		}
 	    else { 
 		clusterer.map.addOverlay(marker);
 		if(!!marker.label){ 
-			clusterer.map.addOverlay(marker.label);
+			marker.label.show();
+			//clusterer.map.addOverlay(marker.label);
 	       		} 
 		}
 	    marker.onMap = true;
