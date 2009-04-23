@@ -1364,6 +1364,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
 		for(l =0;l<poslist.length;l++){
 			coords = " ";
 			cor = GXml.value(poslist.item(l)).split(' ');
+			if(that.isWFS){
 			for(cc=0;cc<(cor.length-1);cc++){
 					if(cor[cc] && cor[cc]!=" " && !isNaN(parseFloat(cor[cc]))){
 						coords += ""+parseFloat(cor[cc])+","+parseFloat(cor[cc+1]);
@@ -1371,6 +1372,16 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
 						cc++;
 						}
 					}
+				}
+			else {
+				for(cc=0;cc<(cor.length-1);cc++){
+					if(cor[cc] && cor[cc]!=" " && !isNaN(parseFloat(cor[cc]))){
+						coords += ""+parseFloat(cor[cc+1])+","+parseFloat(cor[cc]);
+						coords += " ";
+						cc++;
+						}
+					}
+				}
 			if(coords){
  				if(poslist.item(l).parentNode && (poslist.item(l).parentNode.nodeName == "gml:LineString") ){ line_count++; }
 					else { poly_count++; }
@@ -1386,7 +1397,12 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
 			for(p=0;p<pos.length;p++){
 				nv = GXml.value(pos.item(p));
 				cor = nv.split(" ");
-				node = GXml.parse("<coordinates>"+cor[1]+","+cor[0]+"</coordinates>");
+				if(!that.isWFS){
+					node = GXml.parse("<coordinates>"+cor[1]+","+cor[0]+"</coordinates>");
+					}
+				else {
+					node = GXml.parse("<coordinates>"+cor[0]+","+cor[1]+"</coordinates>");
+					}
 				if(coordset.push){ coordset.push(node); }
 				}
 			}
@@ -1566,13 +1582,24 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
 			var plitem = GXml.value(poslist.item(l)) + " ";
 			plitem = plitem.replace(/(\s)+/g,' ');
 			cor = plitem.split(' ');
-			for(cc=0;cc<(cor.length-1);cc++){
+			if(that.isWFS) {
+				for(cc=0;cc<(cor.length-1);cc++){
 					if(!isNaN(parseFloat(cor[cc])) && !isNaN(parseFloat(cor[cc+1]))){
+						coords += ""+parseFloat(cor[cc])+","+parseFloat(cor[cc+1]);
+						coords += " ";
+						cc++;
+						}
+					}
+				}
+			else {
+				for(cc=0;cc<(cor.length-1);cc++){
+						if(!isNaN(parseFloat(cor[cc])) && !isNaN(parseFloat(cor[cc+1]))){
 						coords += ""+parseFloat(cor[cc+1])+","+parseFloat(cor[cc]);
 						coords += " ";
 						cc++;
 						}
 					}
+				}
 			if(coords){
  				if(poslist.item(l).parentNode && (poslist.item(l).parentNode.nodeName == "gml:LineString") ){ line_count++; }
 					else { poly_count++; }
@@ -1588,7 +1615,12 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
 			for(p=0;p<pos.length;p++){
 				nv = GXml.value(pos.item(p))+" ";
 				cor = nv.split(' ');
-				node = GXml.parse("<coordinates>"+cor[1]+","+cor[0]+"</coordinates>");
+				if(!that.isWFS){
+					node = GXml.parse("<coordinates>"+cor[1]+","+cor[0]+"</coordinates>");
+					}
+				else {
+					node = GXml.parse("<coordinates>"+cor[0]+","+cor[1]+"</coordinates>");
+					}
 				if(coordset.push){ coordset.push(node); }
 				}
 			}
@@ -2397,12 +2429,14 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
     var bases = basename.split(":");
     if(bases.length>1){basename = bases[1];}
     var bar, sid, i;
+    that.wfs = false;
     if(basename == "FeatureCollection"){
 		bar = $(that.basesidebar);
 		if(!title){ title = name; }
 		if(typeof title == "undefined"){
 			title = "Un-named GML";
 			}
+		that.isWFS = true;
 		if(title.length > that.maxtitlewidth){
 				that.maxtitlewidth = title.length;
 				}
