@@ -1845,7 +1845,7 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
 	if(typeof fill == "undefined"){ fill = 1; }
 	if(typeof color == "undefined"){ color = this.style.color; }
 	if(typeof fillcolor == "undefined"){ fillcolor = this.randomColor(); }
-	if(typeof name == "undefined" ){ name=unnamedarea; }
+	if(typeof name == "undefined" ){ name=that.unnamedarea; }
  	if (!!that.opts.createpolygon) {
             that.opts.createpolygon(lines,color,width,opacity,fillcolor,fillOpacity,pbounds,name,desc,idx,visible,fill,outline,kml_id);
           } else {
