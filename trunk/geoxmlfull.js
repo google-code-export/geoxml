@@ -3813,9 +3813,13 @@ GeoXml.prototype.upgradeLayer = function(n) {
 
 GeoXml.prototype.makeWMSTileLayer = function(getmapstring, on, title, opac, attr, grouptitle, wmsbounds) {
 	var that = this;
-	getmapstring = getmapstring.replace("&amp;","&");
+	gmapstring = new String(getmapstring);
+	getmapstring = gmapstring.replace("&amp;","&");
  	var args = getmapstring.split("?");
 	var baseurl = args[0]+"?";
+	baseurl = baseurl.replace(/&request=getmap/i,"");
+	baseurl = baseurl.replace(/&service=wms/i,"");
+	//alert("base"+baseurl);
 	var version = "1.1.0";
 	var format = "image/png";
 	var styles = "";
@@ -3850,6 +3854,8 @@ GeoXml.prototype.makeWMSTileLayer = function(getmapstring, on, title, opac, attr
 			case "srs":epsg = duo[1]; break;
 			case "gmcrs":gmcrs = duo[1];break;
 			case "queryable":queryable = duo[1];break;
+			case "getmap":break;
+			case "service":break;
 			default : if(duo[0]){ baseurl += "&"+pairs[i]; } break;
 			}
 		}
@@ -3930,8 +3936,7 @@ GeoXml.prototype.makeWMSTileLayer = function(getmapstring, on, title, opac, attr
 			}
 
 
-		var lURL=this.myBaseURL;
-	
+		var lURL=this.myBaseURL;	
 		if(typeof this.myVersion == "undefined"){ this.myVersion = "1.1.1"; }
 
 		var ver = parseFloat(this.myVersion);
@@ -3939,7 +3944,10 @@ GeoXml.prototype.makeWMSTileLayer = function(getmapstring, on, title, opac, attr
 		if(!this.myBaseURL.match(arcims)) {
 			lURL+="&SERVICE=WMS";
 			if(this.myVersion !="1.0.0"){
-				lURL+="&REQUEST=GetMap";
+				var gmap = /request=getmap/i;
+				if(!lURL.match(gmap)){
+					lURL+="&REQUEST=GetMap";
+					}
 				}
 			else {
 				lURL+="&REQUEST=Map";
