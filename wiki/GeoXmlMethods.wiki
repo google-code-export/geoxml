@@ -1,5 +1,5 @@
 =Methods on GeoXml=
-
+ 
 *hide();*
 //hides all content and toggles any side bar entries to match
 
@@ -11,11 +11,14 @@
 //to reuse after change the contents of the urls array, then call parse.
 
 //to add another datasource
+{{{
 clear();
 geoxmlvar.urls.push("newdatasource");
 geoxmlvar.parse();
-
+}}}
 //to use completely new data sources
+{{{
 clear();
 geoxmlvar.urls = ["newdatasource","anotherdatasource"];
 geoxmlvar.parse();
+}}}
