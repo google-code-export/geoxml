@@ -22,3 +22,8 @@ clear();
 geoxmlvar.urls = ["newdatasource","anotherdatasource"];
 geoxmlvar.parse();
 }}}
+//to just update the same source
+{{{
+clear();
+geoxmlvar.parse();
+}}}
