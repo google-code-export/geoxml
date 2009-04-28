@@ -1809,7 +1809,7 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
         this.overlayman.folderBounds[idx].extend(point);
         // Does the user have their own createmarker function?
 	if(!skiprender){
-		if(typeof name == "undefined"){name=unnamedplace;}
+		if(typeof name == "undefined"){name= that.unnamedplace;}
         	if (!!that.opts.createmarker) {
           		that.opts.createmarker(point, name, desc, styleid, idx, style, visible, kml_id);
         		} 
