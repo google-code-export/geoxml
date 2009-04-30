@@ -1,5 +1,11 @@
 =Methods on GeoXml=
  
+*parse();*
+//loads data sources associated with the GeoXml on to the map.
+
+*parseString(datastring);*
+//allows parsing from a dynamically created string instead of loading a url.
+
 *hide();*
 //hides all content and toggles any side bar entries to match
 
