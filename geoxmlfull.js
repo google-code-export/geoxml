@@ -2151,6 +2151,7 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {
 		this.overlayman.folderBounds.push(new GLatLngBounds());
   		this.kml.push(new KMLObj(title, desc, false, idx));
 		me = this.kml.length - 1;
+		alert(title);
 		folderid = this.createFolder(idx, title, sbid, icon, desc, snip, true, visible);
 		} 
 	else {
@@ -2617,7 +2618,7 @@ GeoXml.prototype.createFolder = function(idx, title, sbid, icon, desc, snippet, 
 		htm += '&nbsp;<span title="'+snippet+'" id="'+this.myvar+'TB'+idx+'" oncontextmenu=\"'+this.myvar+'.saveJSON('+idx+');\" onclick="'+this.myvar+'.toggleFolder('+idx+')" style=\"'+fw+'\">';
 		htm += '<img style=\"vertical-align:text-top;padding:0;margin:0\" height=\"16\" border=\"0\" src="'+icon+'" /></span>&nbsp;';
 		htm += '<a href="#" onclick="'+this.myvar+'.overlayman.zoomToFolder('+idx+');'+this.myvar+'.mb.showMess(\''+desc+'\',3000);return false;">' + title + '</a><br><div id=\"'+folderid+'\" style="'+disp+'"></div></ul>';
-		if(sb){ sb.innerHTML = htm + sb.innerHTML; }
+		if(sb){ sb.innerHTML = sb.innerHTML + htm; }
 		return folderid;
 	    };
 	    
