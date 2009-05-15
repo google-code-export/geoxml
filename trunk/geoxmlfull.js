@@ -2151,7 +2151,6 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {
 		this.overlayman.folderBounds.push(new GLatLngBounds());
   		this.kml.push(new KMLObj(title, desc, false, idx));
 		me = this.kml.length - 1;
-		alert(title);
 		folderid = this.createFolder(idx, title, sbid, icon, desc, snip, true, visible);
 		} 
 	else {
