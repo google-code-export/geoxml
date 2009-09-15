@@ -344,14 +344,14 @@ GeoXml.prototype.createMarker = function(point,name,desc,style,idx,instyle,visib
 	m.geoxml = this;
 	GEvent.addListener(m,"mouseover", function() {
 		var bar = $(this.sidebarid);
-		if(bar){
+		if(bar && typeof bar !="undefined"){
 			bar.style.backgroundColor = this.hilite.color;
 			bar.style.color = this.hilite.textcolor;
 			}
 		});
 	GEvent.addListener(m,"mouseout", function() {
 		var bar = $(this.sidebarid);
-		if(bar) {
+		if(bar && typeof bar !="undefined"){
 			bar.style.background = "none"; 
 			bar.style.color = "";
 			}
@@ -742,20 +742,21 @@ GeoXml.prototype.finishLineJSON = function(po, idx, lastlinename){
 		}
   	m.onOver = function(){
 			if(!!this.sidebarid){
-				
-				if(bar){bar.style.backgroundColor = this.hilite.color;}
+				var bar = $(this.sidebarid);	
+				if(bar && typeof bar !="undefined")
+					{bar.style.backgroundColor = this.hilite.color;}
 				}
 			this.realColor = this.strokeColor;
-			mark.setStrokeStyle({color:this.hilite.color});
+			if(mark && typeof mark!="undefined")mark.setStrokeStyle({color:this.hilite.color});
 			this.redraw(true);
 			if(this.mess) { this.geoxml.mb.showMess(this.mess,5000); } else { this.title = "Click for more information about "+this.mytitle; }
 			};
   	m.onOut = function(){ 	
 			if(!!this.sidebarid){
-				var bar = $(this.sidebarid);
-				if(bar){bar.style.background = "none"; }
+				var bar = $(this.sidebarid);	
+				if(bar && typeof bar !="undefined"){bar.style.background = "none"; }
 				}
-			mark.setStrokeStyle({color:this.realColor});
+			if(mark && typeof mark!="undefined")mark.setStrokeStyle({color:this.realColor});
 			this.redraw(true);
 			if(this.mess){ this.geoxml.mb.hideMess(); }
 			};
