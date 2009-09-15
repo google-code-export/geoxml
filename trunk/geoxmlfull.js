@@ -1004,16 +1004,20 @@ GeoXml.prototype.saveJSON = function(){
 	if(top.standalone){
 		var fpath = browseForSave("Select a directory to place your json file","JSON Data Files (*.js)|*.js|All Files (*.*)|*.*","JSON-DATA");
 
- 		if(typeof fpath!="undefined"){ saveLocalFile (fpath+".js", this.kml.toJSONString()); }
+ 		if(typeof fpath!="undefined"){
+			var jsonstr = JSON.stringify(this.kml);
+			 saveLocalFile (fpath+".js",jsonstr); 
+			}
 		return;
 		}
 
-	if(this.kml.toJSONString){
+	if(typeof JSON != "undefined"){
+		var jsonstr = JSON.stringify(this.kml);
 		if(typeof serverBlessJSON!="undefined"){
-			serverBlessJSON(escape(this.kml.toJSONString()),"MyKJSON"); 
+			serverBlessJSON(escape(jsonstr),"MyKJSON"); 
 			}
 		else {
-			this.showIt(this.kml.toJSONString());
+			this.showIt(jsonstr);
 			}
 		}
 	else {
