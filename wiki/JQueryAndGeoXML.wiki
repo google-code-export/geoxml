@@ -1,6 +1,10 @@
 #labels Phase-Implementation,Phase-Deploy,Phase-Support
 #How to avoid conflicts between JQuery and geoxml.js
 
+*geoxml should now be compatible with JQuery and other libraries using $*
+
+
+
 = Introduction =
 
 jQuery has a function that is defined as "$" *so does GeoXML*.
