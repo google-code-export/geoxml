@@ -16,6 +16,7 @@ function KMLObj(title,desc,op,fid) {
 	}
 
 function Lance$(mid){ return document.getElementById(mid);}
+var topwin = self;
 
 function GeoXml(myvar, map, url, opts) {
   // store the parameters
@@ -72,9 +73,17 @@ function GeoXml(myvar, map, url, opts) {
 	  	if(fixUrlEnd){ getcapproxy = fixUrlEnd(getcapproxy);  } 
  		}
   if(this.opts.hideall){ this.hideall = this.opts.hideall; }
-  if(top.publishdirectory){ this.publishdirectory = top.publishdirectory; }
+  try {
+  	if(top.publishdirectory){ 
+		this.publishdirectory = top.publishdirectory;
+       		}
+	topwin = top;
+ 	 }
+  catch(err){
+	topwin = self;
+  	}
   else {this.publishdirectory = "http://www.dyasdesigns.com/tntmap/";}
-  if(top.standalone){this.publishdirectory = "";}
+  if(topwin.standalone){this.publishdirectory = "";}
   this.kmlicon =  this.publishdirectory +"images/ge.png";
   this.docicon = this.publishdirectory +"images/ge.png";
   this.foldericon = this.publishdirectory + "images/folder.png";
@@ -123,7 +132,7 @@ function GeoXml(myvar, map, url, opts) {
 GeoXml.prototype.showIt = function (str, h, w) {
 	var features = "status=yes,resizable=yes,toolbar=0,height=" + h + ",width=" + h + ",scrollbars=yes";
 	var myWin;
-	if (top.widget) {
+	if (topwin.widget) {
 		alert(str);
 		this.mb.showMess(str);
 		}
@@ -1002,7 +1011,7 @@ GeoXml.prototype.toggleFolder = function(i){
 
 GeoXml.prototype.saveJSON = function(){
 
-	if(top.standalone){
+	if(topwin.standalone){
 		var fpath = browseForSave("Select a directory to place your json file","JSON Data Files (*.js)|*.js|All Files (*.*)|*.*","JSON-DATA");
 
  		if(typeof fpath!="undefined"){
@@ -2180,7 +2189,7 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {
 		var nl = /\n/g;
 		url = url.replace(nl,"");
  		this.progress++;	
-		if(!top.standalone){
+		if(!topwin.standalone){
 			if(typeof this.proxy!="undefined") { url = this.proxy + escape(url); } 
 			}
 	 	var comm = this.myvar +".loadXMLUrl('"+url+"','"+title+"',null,null,'"+sbid+"');";
@@ -2370,7 +2379,7 @@ GeoXml.prototype.processGPX = function(node,title,sbid,depth) {
 	};
 
 GeoXml.prototype.ParseURL = function (){
-		var query = top.location.search.substring(1);
+		var query = topwin.location.search.substring(1);
 		var pairs = query.split("&");
 		var marks = this.overlayman.markers;
       		for (var i=0; i<pairs.length; i++) {
@@ -4136,12 +4145,12 @@ GeoXml.prototype.DownloadURL = function (fpath,callback,title){
 	var that=this;
 	var cmlurl = fpath;
 	
-    if (!top.standalone && this.proxy) {
+    if (!topwin.standalone && this.proxy) {
         cmlurl = this.proxy + "url=" + escape(cmlurl);
         }
 
 
-    if (top.standalone || useLegacyLocalLoad) {
+    if (topwin.standalone || useLegacyLocalLoad) {
         if (cmlurl.substring(2, 3) == ":") {
             xmlDoc = new ActiveXObject("Msxml2.DOMDocument.4.0");
             xmlDoc.validateOnParse = false;
