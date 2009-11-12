@@ -73,16 +73,10 @@ function GeoXml(myvar, map, url, opts) {
 	  	if(fixUrlEnd){ getcapproxy = fixUrlEnd(getcapproxy);  } 
  		}
   if(this.opts.hideall){ this.hideall = this.opts.hideall; }
-  try {
-  	if(top.publishdirectory){ 
-		this.publishdirectory = top.publishdirectory;
-       		}
-	topwin = top;
- 	 }
-  catch(err){
-	topwin = self;
-  	}
-  else {this.publishdirectory = "http://www.dyasdesigns.com/tntmap/";}
+  this.publishdirectory = "http://www.dyasdesigns.com/tntmap/";
+  topwin = top;
+  try {topname=top.title;}catch(err){topwin=self;};
+  if(topwin.publishdirectory){this.publishdirectory = topwin.publishdirectory; }
   if(topwin.standalone){this.publishdirectory = "";}
   this.kmlicon =  this.publishdirectory +"images/ge.png";
   this.docicon = this.publishdirectory +"images/ge.png";
