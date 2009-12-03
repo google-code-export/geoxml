@@ -43,3 +43,13 @@ if (curl_errno($ch)) {
 
 ?>
 }}}
+
+
+The above proxy script is fully open, and there are people who
+ will tell you (if you have a rather targeted use like always getting from
+ google or similar single source you might want to change it to test 
+{{{
+$_GET['url'] 
+}}}
+
+variable to see if the script is being called for your purpose
