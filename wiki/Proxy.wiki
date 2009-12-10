@@ -21,7 +21,6 @@ if(isset($GLOBALS[HTTP_RAW_POST_DATA])){
     $post_data = $GLOBALS[HTTP_RAW_POST_DATA];
     $header[] = "Content-length: ".strlen($post_data);
     }
- }
 $ch = curl_init( urldecode($_GET['url']) );
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
