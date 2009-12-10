@@ -17,8 +17,8 @@ proxy.php src:
 <?php
 $header[] = "Content-type: text/xml";
 $post_data = '';
-if(isset($GLOBALS[HTTP_RAW_POST_DATA])){
-    $post_data = $GLOBALS[HTTP_RAW_POST_DATA];
+if(isset($GLOBALS['HTTP_RAW_POST_DATA'])){
+    $post_data = $GLOBALS['HTTP_RAW_POST_DATA'];
     $header[] = "Content-length: ".strlen($post_data);
     }
 $ch = curl_init( urldecode($_GET['url']) );
