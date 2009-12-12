@@ -33,3 +33,7 @@ geoxmlvar.parse();
 clear();
 geoxmlvar.parse();
 }}}
+
+new parameter makedescription:true <- useful for georss feeds.
+
+new parameter iwheight:250 <--- specify height of information block before the window gets scroll bars.
