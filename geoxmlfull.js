@@ -92,6 +92,7 @@ function GeoXml(myvar, map, url, opts) {
   this.style.color = this.randomColor();
   this.style.fillcolor = this.randomColor();
   this.iwwidth = this.opts.iwwidth || 400;
+  this.iwheight = this.opts.iwheight || 250;
   this.lastmarker = {};   
   this.verySmall = 0.0000001;
   this.progress = 0;
@@ -1254,7 +1255,7 @@ GeoXml.prototype.makeDescription = function(elem, title, depth) {
 			}
 		else { base = nn;}
  	
-		if(base.match(/^(visible|visibility|boundedBy|StyleMap|styleUrl|posList|coordinates|Style|Polygon|LineString|Point|LookAt|Envelope|Box|MultiPolygon|where)/)){
+		if(base.match(/^(lat|long|visible|visibility|boundedBy|StyleMap|styleUrl|posList|coordinates|Style|Polygon|LineString|Point|LookAt|Envelope|Box|MultiPolygon|where|guid)/)){
  			currdeschead = ""; 
 			}
 		else {
@@ -1272,10 +1273,16 @@ GeoXml.prototype.makeDescription = function(elem, title, depth) {
 				}
 			val = subelem.nodeValue;
 			if(nn == "link"){
-					var href = subelem.getAttribute("href");
-					if(href){
-						val = '<a href="' + href + '">' + href + '</a>';
+				var href = subelem.getAttribute("href");
+				if(href && href!='null'){
+					val = '<a target="_blank" title="'+href+'" href="' + href + '">Link</a>';
+					}
+				else {
+					if(val && val!= "null"){
+					val = '<a target="_blank" title="'+val+'" href="' + val + '">Link</a>';
 						}
+					}
+				currdeschead = "Link to Article"; 
 				}
 			if(base.match(/(\S)*(name|title)(\S)*/i)){
 			 	if(!val){ val = GXml.value(subelem); }
@@ -1288,7 +1295,7 @@ GeoXml.prototype.makeDescription = function(elem, title, depth) {
 			else {
 				 if(val && val.match(/(\S)+/)){		
 					if (val.match(/^http:\/\/|^https:\/\//i)) {
-        	    				val = '<a href="' + val + '">' + val + '</a>';
+        	    				val = '<a target="_blank" " href="' + val + '">[go]</a>';
       		    				}
 					else {
 						if(!title || title==""){
@@ -1300,8 +1307,9 @@ GeoXml.prototype.makeDescription = function(elem, title, depth) {
 						}
 				
 					}
-			   if(val && (val.match(/(\s)*/)!=true)) { 
-				d += currdeschead + "<span>"+val+"</span><br />"; currdeschead = ""; 
+			   if(val && val !="null" && val!='  ' && val!= ' ' && (val.match(/(\s|\t|\n)*/)!=true)) { 
+				if(currdeschead != ''){ d += '<br />';}
+				d += currdeschead + ""+val+""; currdeschead = ""; 
 			   	}
 			
 				if(subelem.childNodes.length){
@@ -1423,7 +1431,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
 	poly_count=0;
      
 	var dc = that.makeDescription(mark,"");
-	desc = "<ul>"+dc.desc+"</ul>";
+	desc = "<div id='currentwindow' style='overflow:auto;height:"+this.iwheight+"px' >"+dc.desc+"</div> ";
 	if(!name && dc.title){
 		name = dc.title;
 		if(name.length > this.maxtitlewidth){
@@ -1772,9 +1780,9 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
 		style = this.styles[styleid];
 		}
 
-      if(typeof desc == "undefined" || !desc  ){
+      if(typeof desc == "undefined" || !desc || this.opts.makedescription){
 	    var dc = that.makeDescription(mark,"");
-	    desc = "<ul>"+dc.desc+"</ul>";
+	    desc = "<div id='currentpopup' style='overflow:auto;height:"+this.iwheight+"px' >"+dc.desc+"</div> ";
 	    if(!name && dc.title){
 			name = dc.title;
 			if((name.length +depth) > this.maxtitlewidth){
