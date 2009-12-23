@@ -1,5 +1,4 @@
-#summary One-sentence summary of this page.
-This is a page for recording the various options for GeoXml
+#This is a page for recording the various options for GeoXml
 = Introduction =
  
 
