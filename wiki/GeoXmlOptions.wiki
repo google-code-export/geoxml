@@ -2,8 +2,9 @@
 = Introduction =
  GeoXml has many options those a large number correspond to those in EGeoXml
 ----
+{{{
  alwaysinfopop: true 
-
+}}}
 the above results in informational bubbles opening even when a element is clicked programmatically or from a sidebar click.
 
 ---- 
