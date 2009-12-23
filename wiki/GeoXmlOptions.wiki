@@ -1,9 +1,6 @@
 #This is a page for recording the various options for GeoXml
 = Introduction =
  GeoXml has many options those a large number correspond to those in EGeoXml
-
-= Details =
-
 ----
  alwaysinfopop: true 
 
