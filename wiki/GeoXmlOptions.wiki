@@ -1,6 +1,6 @@
 #This is a page for recording the various options for GeoXml
 = Introduction =
-GeoXml has many options though a large number correspond to those in [http://econym.org.uk/gmap/egeoxml.htm] EGeoXml, we can record divergence here.
+GeoXml though has many options which correspond to those in [http://econym.org.uk/gmap/egeoxml.htm EGeoXml], we can record divergence here.
 {{{
  alwaysinfopop: true 
 }}}
