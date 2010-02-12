@@ -30,7 +30,7 @@ function GeoXml(myvar, map, url, opts) {
   } else {
     this.urls = url;
   }
- 
+  this.zoomHere = 15; 
   this.mb.style = this.opts.messagestyle || { backgroundColor: "silver"};
   this.alwayspop = this.opts.alwaysinfopop || false;
   this.quiet = this.opts.quiet || false;
@@ -55,6 +55,9 @@ function GeoXml(myvar, map, url, opts) {
   if(typeof this.opts.allfoldersopen !="undefined"){ this.forcefoldersopen = this.opts.allfoldersopen;}
  
   this.clickablepolys = true;
+  if(typeof this.opts.zoomhere == "number"){
+	 this.zoomHere = this.opts.zoomhere;
+ 	 }
   if(typeof this.opts.clickablepolys == "boolean"){
 	this.clickablepolys = this.opts.clickablepolys;
   	}
@@ -293,7 +296,7 @@ GeoXml.prototype.createMarker = function(point,name,desc,style,idx,instyle,visib
     html1 = html + '<div '+this.directionstyle+'>'
                      + 'Get Directions: <a href="#" onclick="GEvent.trigger(' + this.myvar +'.lastmarker,\'click2\');return false;">To Here</a> - ' 
                      + '<a href="#" onclick="GEvent.trigger(' + this.myvar +'.lastmarker,\'click3\');return false;">From Here</a><br>'
-                     + '<a href="#" onclick="GEvent.trigger(' + this.myvar +'.lastmarker,\'click4\');return false;">Search nearby</a> | <a href="#" onclick="' + this.myvar +'.map.setCenter(new GLatLng('+point.lat()+','+point.lng()+'),17);return false;">Zoom Here</a></div>';
+                     + '<a href="#" onclick="GEvent.trigger(' + this.myvar +'.lastmarker,\'click4\');return false;">Search nearby</a> | <a href="#" onclick="' + this.myvar +'.map.setCenter(new GLatLng('+point.lat()+','+point.lng()+'),'+this.zoomHere+');return false;">Zoom Here</a></div>';
     html2 = html + '<div '+this.directionstyle+'>'
                      + 'Get Directions: To here - '
                      + '<a href="#" onclick="GEvent.trigger(' + this.myvar +'.lastmarker,\'click3\');return false;">From Here</a><br>'
@@ -301,7 +304,7 @@ GeoXml.prototype.createMarker = function(point,name,desc,style,idx,instyle,visib
                      + '<input type="text" SIZE=35 MAXLENGTH=80 name="saddr" id="saddr" value="" />'
                      + '<INPUT value="Go" TYPE="SUBMIT">'
                      + '<input type="hidden" name="daddr" value="' + point.lat() + ',' + point.lng() + "(" + name + ")" + '"/>'
-                     + '<br><a href="# onclick="GEvent.trigger(' + this.myvar +'.lastmarker,\'click\');return false;">&#171; Back</a>| <a href="#" onclick="' + this.myvar +'.map.setCenter(new GLatLng('+point.lat()+','+point.lng()+'),17);return false;">Zoom Here</a></div>';
+                     + '<br><a href="# onclick="GEvent.trigger(' + this.myvar +'.lastmarker,\'click\');return false;">&#171; Back</a>| <a href="#" onclick="' + this.myvar +'.map.setCenter(new GLatLng('+point.lat()+','+point.lng()+'),'+this.zoomHere+');return false;">Zoom Here</a></div>';
     html3 = html + '<div '+this.directionstyle+'>'
                      + 'Get Directions: <a href="#" onclick="GEvent.trigger(' + this.myvar +'.lastmarker,\'click2\');return false;">To Here</a> - ' 
                      + 'From Here<br>'
@@ -309,14 +312,14 @@ GeoXml.prototype.createMarker = function(point,name,desc,style,idx,instyle,visib
                      + '<input type="text" SIZE=35 MAXLENGTH=80 name="daddr" id="daddr" value="" />'
                      + '<INPUT value="Go" TYPE="SUBMIT">'
                      + '<input type="hidden" name="saddr" value="' + point.lat() + ',' + point.lng() +  "(" + name + ")" + '"/>'
-                     + '<br><a href="#" onclick="GEvent.trigger(' + this.myvar +'.lastmarker,\'click\');return false;">&#171; Back</a> | <a href="#" onclick="' + this.myvar +'.map.setCenter(new GLatLng('+point.lat()+','+point.lng()+'),17);return false;">Zoom Here</a></div>';
+                     + '<br><a href="#" onclick="GEvent.trigger(' + this.myvar +'.lastmarker,\'click\');return false;">&#171; Back</a> | <a href="#" onclick="' + this.myvar +'.map.setCenter(new GLatLng('+point.lat()+','+point.lng()+'),'+this.zoomHere+');return false;">Zoom Here</a></div>';
     html4 = html + '<div '+this.directionstyle+'>'
                      + 'Search nearby: e.g. "pizza"<br>'
                      + '<form action="http://maps.google.com/maps" method="get"" target="_blank">'
                      + '<input type="text" SIZE=35 MAXLENGTH=80 name="q" id="q" value="" />'
                      + '<INPUT value="Go" TYPE="SUBMIT">'
                      + '<input type="hidden" name="near" value="' + name + ' @' + point.lat() + ',' + point.lng() + '"/>'
-         	     + '<br><a href="# onclick="GEvent.trigger(' + this.myvar +'.lastmarker,\'click\');return false;">&#171; Back</a> | <a href="#" onclick="' + this.myvar +'.map.setCenter(new GLatLng('+point.lat()+','+point.lng()+'),17);return false;">Zoom Here</a></div>';
+         	     + '<br><a href="# onclick="GEvent.trigger(' + this.myvar +'.lastmarker,\'click\');return false;">&#171; Back</a> | <a href="#" onclick="' + this.myvar +'.map.setCenter(new GLatLng('+point.lat()+','+point.lng()+'),'+this.zoomHere+');return false;">Zoom Here</a></div>';
     GEvent.addListener(m, "click2", function() {
       m.openInfoWindowHtml(html2 + "</div>",iwoptions);
     });
