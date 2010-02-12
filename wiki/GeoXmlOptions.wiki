@@ -21,7 +21,7 @@ the above results in informational bwindows with directions using a Zoom level o
 {{{
  iwheight: 100 
 }}}
-the above results in informational windows with height of 100px context (note you may get scroll bars.
+the above results in informational windows with height of 100px (note you may get scroll bars if your content doesnt fit. )
 
 
 ---- 
