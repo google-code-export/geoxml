@@ -24,3 +24,11 @@ To turn off clicking of elements
 preloadHTML :false
 }}}
 To turn off preloading info window html
+{{{
+pointlabelclass: "mymarkerlabelclassname" 
+}}}
+A string containing the name of the CSS class to be used for ELabels on markers.
+{{{
+polylabelclass: "mymarkerlabelclassname" 
+}}}
+A string containing the name of the CSS class to be used for ELabels on polygons.
