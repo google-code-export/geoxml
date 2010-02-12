@@ -8,3 +8,11 @@
 the above results in informational bubbles opening even when a element is clicked programmatically or from a sidebar click.
 
 ---- 
+
+----
+{{{
+ zoomhere: 12 
+}}}
+the above results in informational bubbles with directions using a Zoom level of 12 when you click on Zoom Here 
+
+---- 
