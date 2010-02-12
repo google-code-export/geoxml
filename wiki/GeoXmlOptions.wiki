@@ -1,19 +1,26 @@
 #This is a page for recording the various options for GeoXml
 = Introduction =
  GeoXml has many options though a large number correspond to those in EGeoXml, we can record divergence here.
------
 {{{
  alwaysinfopop: true 
 }}}
 the above results in informational windows opening even when a element is clicked programmatically or from a sidebar click.
------
 {{{
  zoomhere: 12 
 }}}
 the above results in informational bwindows with directions using a Zoom level of 12 when you click on Zoom Here 
------
 {{{
  iwheight: 100 
 }}}
 the above results in informational windows with height of 100px (note you may get scroll bars if your content doesnt fit. )
------
+{{{
+clickablepolys : false
+clickablelines : false
+clickablemarkers : false
+}}}
+
+To turn off clicking of elements
+{{{
+preloadHTML :false
+}}}
+To turn off preloading info window html
