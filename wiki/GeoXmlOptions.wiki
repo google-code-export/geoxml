@@ -9,7 +9,6 @@ the above results in informational windows opening even when a element is clicke
 
 ---- 
 
-----
 {{{
  zoomhere: 12 
 }}}
@@ -17,11 +16,9 @@ the above results in informational bwindows with directions using a Zoom level o
 
 ---- 
 
-----
 {{{
  iwheight: 100 
 }}}
 the above results in informational windows with height of 100px (note you may get scroll bars if your content doesnt fit. )
-
 
 ---- 
