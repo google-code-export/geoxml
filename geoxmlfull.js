@@ -195,189 +195,187 @@ GeoXml.prototype.createMarkerJSON = function(item,idx) {
           	that.createMarker(point, item.title, unescape(item.description), null, idx, style, item.visibility, item.id);
         	}
 	};
- 
-GeoXml.prototype.createMarker = function(point,name,desc,style,idx,instyle,visible,kml_id) {
-   var myvar=this.myvar;
-   var icon;
-   var bicon = new GIcon();
-   if(this.opts.baseicon){
-	bicon.iconSize = this.opts.baseicon.iconSize;
-	bicon.iconAnchor = this.opts.baseicon.iconAnchor;
-	bicon.shadowSize = this.opts.baseicon.shadowSize;
-	bicon.infoWindowAnchor = this.opts.baseicon.infoWindowAnchor;
-	}
-   else {
-	//bicon = G_DEFAULT_ICON;
-	bicon.infoWindowAnchor=new GPoint(16,0);
-  	bicon.iconSize=new GSize(32,32);
-  	bicon.shadowSize=new GSize(32,32);
-   	bicon.iconAnchor=new GPoint(16,32);
-  	}
-   
-   var shadow;
-   var href;
-  if(this.opts.iconFromDescription){
-	var text = desc;
- 	var pattern = new RegExp ("<\\s*img", "ig");
-	var result;
-	var pattern2 = /src\s*=\s*[\'\"]/;
-	var pattern3 = /[\'\"]/;
-    	while ((result = pattern.exec(text))!= null) {
-		var stuff = text.substr(result.index);
-		var result2 = pattern2.exec(stuff);
-      		if (result2!= null) {
-        		stuff = stuff.substr(result2.index+result2[0].length);
-        		var result3 = pattern3.exec(stuff);
-        		if (result3!= null) {
-          			var imageUrl = stuff.substr(0,result3.index);
-	 			 href = imageUrl;
-          			}
-       			}
-     		}
-	shadow = null;
-	if(!href){
-		href = "http://maps.google.com/mapfiles/kml/pal3/icon40.png";
-		}
 
-	icon = new GIcon(bicon, href, null, shadow);
-	}
-  else {
-    href = "http://maps.google.com/mapfiles/kml/pal3/icon40";
-    if(instyle == null || typeof instyle == "undefined"){
-	shadow = href + "s.png";
-	href += ".png";
-	if(this.opts.baseicon){
-		href = this.opts.baseicon.image;
-		shadow = this.opts.baseicon.shadow;
-		}
-	}
-   else { 
-	if(instyle.href) { href = instyle.href; }
-	if(instyle.shadow) { shadow = instyle.shadow; }
-	}
-   icon = new GIcon(bicon, href, null, shadow );
-  }
-  var iwoptions = this.opts.iwoptions || {};
-  var markeroptions = this.opts.markeroptions || {};
-  var icontype = this.opts.icontype || "style";
-  if (icontype == "style") {
-    if (!!this.styles[style]) {
-      icon = new GIcon(bicon, this.styles[style].href, null, this.styles[style].shadow);
-      icon.src =  this.styles[style].href;
-      href =  this.styles[style].href;
-    }
-  }
-  if (!markeroptions.icon) {
-    markeroptions.icon = icon;
-  }
-  markeroptions.title = name;
-  var m = new GMarker(point, markeroptions);
-  m.title = name;
-  m.id = kml_id;
-  var obj = {"type":"point","title":name,"description":escape(desc),"href":href,"shadow": shadow,"visibility":visible,"x":point.x,"y": point.y,"id": m.id};
-  this.kml[idx].marks.push(obj);
+	GeoXml.prototype.createMarker = function(point, name, desc, style, idx, instyle, visible, kml_id) {
+	    var myvar = this.myvar;
+	    var icon;
+	    var bicon = new GIcon();
+	    if (this.opts.baseicon) {
+	        bicon.iconSize = this.opts.baseicon.iconSize;
+	        bicon.iconAnchor = this.opts.baseicon.iconAnchor;
+	        bicon.shadowSize = this.opts.baseicon.shadowSize;
+	        bicon.infoWindowAnchor = this.opts.baseicon.infoWindowAnchor;
+	    }
+	    else {
+	        //bicon = G_DEFAULT_ICON;
+	        bicon.infoWindowAnchor = new GPoint(16, 0);
+	        bicon.iconSize = new GSize(32, 32);
+	        bicon.shadowSize = new GSize(32, 32);
+	        bicon.iconAnchor = new GPoint(16, 32);
+	    }
 
-  if (this.opts.pointlabelclass) {
-    var l = new ELabel(point, name, this.opts.pointlabelclass, this.opts.pointlabeloffset, this.pointlabelopacity, true);
-    m.label = l;
-    this.map.addOverlay(l);
-  }
- var html,html1,html2,html3,html4;
- var awidth = this.iwwidth;
- if(desc.length * 8 <  awidth){
-	awidth = desc.length * 8;
- 	}
- if(awidth < name.length * 10){
-	awidth = name.length * 10;
- 	}
-   html = "<div style = 'width:"+awidth+"px'>" + "<h1 "+this.titlestyle+">"+name+"</h1>" +"<div "+this.descstyle+">"+desc+"</div>";
-   var html1;
-  if (this.opts.directions) {
-    html1 = html + '<div '+this.directionstyle+'>'
-                     + 'Get Directions: <a href="#" onclick="GEvent.trigger(' + this.myvar +'.lastmarker,\'click2\');return false;">To Here</a> - ' 
-                     + '<a href="#" onclick="GEvent.trigger(' + this.myvar +'.lastmarker,\'click3\');return false;">From Here</a><br>'
-                     + '<a href="#" onclick="GEvent.trigger(' + this.myvar +'.lastmarker,\'click4\');return false;">Search nearby</a> | <a href="#" onclick="' + this.myvar +'.map.setCenter(new GLatLng('+point.lat()+','+point.lng()+'),'+this.zoomHere+');return false;">Zoom Here</a></div>';
-    html2 = html + '<div '+this.directionstyle+'>'
+	    var shadow;
+	    var href;
+	    if (this.opts.iconFromDescription) {
+	        var text = desc;
+	        var pattern = new RegExp("<\\s*img", "ig");
+	        var result;
+	        var pattern2 = /src\s*=\s*[\'\"]/;
+	        var pattern3 = /[\'\"]/;
+	        while ((result = pattern.exec(text)) != null) {
+	            var stuff = text.substr(result.index);
+	            var result2 = pattern2.exec(stuff);
+	            if (result2 != null) {
+	                stuff = stuff.substr(result2.index + result2[0].length);
+	                var result3 = pattern3.exec(stuff);
+	                if (result3 != null) {
+	                    var imageUrl = stuff.substr(0, result3.index);
+	                    href = imageUrl;
+	                }
+	            }
+	        }
+	        shadow = null;
+	        if (!href) {
+	            href = "http://maps.google.com/mapfiles/kml/pal3/icon40.png";
+	        }
+
+	        icon = new GIcon(bicon, href, null, shadow);
+	    }
+	    else {
+	        href = "http://maps.google.com/mapfiles/kml/pal3/icon40";
+	        if (instyle == null || typeof instyle == "undefined") {
+	            shadow = href + "s.png";
+	            href += ".png";
+	            if (this.opts.baseicon) {
+	                href = this.opts.baseicon.image;
+	                shadow = this.opts.baseicon.shadow;
+	            }
+	        }
+	        else {
+	            if (instyle.href) { href = instyle.href; }
+	            if (instyle.shadow) { shadow = instyle.shadow; }
+	        }
+	        icon = new GIcon(bicon, href, null, shadow);
+	    }
+	    var iwoptions = this.opts.iwoptions || {};
+	    var markeroptions = this.opts.markeroptions || {};
+	    var icontype = this.opts.icontype || "style";
+	    if (icontype == "style") {
+	        if (!!this.styles[style]) {
+	            icon = new GIcon(bicon, this.styles[style].href, null, this.styles[style].shadow);
+	            icon.src = this.styles[style].href;
+	            href = this.styles[style].href;
+	        }
+	    }
+	    markeroptions.icon = icon;
+	    markeroptions.title = name;
+	    var m = new GMarker(point, markeroptions);
+	    m.title = name;
+	    m.id = kml_id;
+	    var obj = { "type": "point", "title": name, "description": escape(desc), "href": href, "shadow": shadow, "visibility": visible, "x": point.x, "y": point.y, "id": m.id };
+	    this.kml[idx].marks.push(obj);
+
+	    if (this.opts.pointlabelclass) {
+	        var l = new ELabel(point, name, this.opts.pointlabelclass, this.opts.pointlabeloffset, this.pointlabelopacity, true);
+	        m.label = l;
+	        this.map.addOverlay(l);
+	    }
+	    var html, html1, html2, html3, html4;
+	    var awidth = this.iwwidth;
+	    if (desc.length * 8 < awidth) {
+	        awidth = desc.length * 8;
+	    }
+	    if (awidth < name.length * 10) {
+	        awidth = name.length * 10;
+	    }
+	    html = "<div style = 'width:" + awidth + "px'>" + "<h1 " + this.titlestyle + ">" + name + "</h1>" + "<div " + this.descstyle + ">" + desc + "</div>";
+	    var html1;
+	    if (this.opts.directions) {
+	        html1 = html + '<div ' + this.directionstyle + '>'
+                     + 'Get Directions: <a href="#" onclick="GEvent.trigger(' + this.myvar + '.lastmarker,\'click2\');return false;">To Here</a> - '
+                     + '<a href="#" onclick="GEvent.trigger(' + this.myvar + '.lastmarker,\'click3\');return false;">From Here</a><br>'
+                     + '<a href="#" onclick="GEvent.trigger(' + this.myvar + '.lastmarker,\'click4\');return false;">Search nearby</a> | <a href="#" onclick="' + this.myvar + '.map.setCenter(new GLatLng(' + point.lat() + ',' + point.lng() + '),' + this.zoomHere + ');return false;">Zoom Here</a></div>';
+	        html2 = html + '<div ' + this.directionstyle + '>'
                      + 'Get Directions: To here - '
-                     + '<a href="#" onclick="GEvent.trigger(' + this.myvar +'.lastmarker,\'click3\');return false;">From Here</a><br>'
+                     + '<a href="#" onclick="GEvent.trigger(' + this.myvar + '.lastmarker,\'click3\');return false;">From Here</a><br>'
                      + 'Start address:<form action="http://maps.google.com/maps" method="get" target="_blank">'
                      + '<input type="text" SIZE=35 MAXLENGTH=80 name="saddr" id="saddr" value="" />'
                      + '<INPUT value="Go" TYPE="SUBMIT">'
                      + '<input type="hidden" name="daddr" value="' + point.lat() + ',' + point.lng() + "(" + name + ")" + '"/>'
-                     + '<br><a href="# onclick="GEvent.trigger(' + this.myvar +'.lastmarker,\'click\');return false;">&#171; Back</a>| <a href="#" onclick="' + this.myvar +'.map.setCenter(new GLatLng('+point.lat()+','+point.lng()+'),'+this.zoomHere+');return false;">Zoom Here</a></div>';
-    html3 = html + '<div '+this.directionstyle+'>'
-                     + 'Get Directions: <a href="#" onclick="GEvent.trigger(' + this.myvar +'.lastmarker,\'click2\');return false;">To Here</a> - ' 
+                     + '<br><a href="# onclick="GEvent.trigger(' + this.myvar + '.lastmarker,\'click\');return false;">&#171; Back</a>| <a href="#" onclick="' + this.myvar + '.map.setCenter(new GLatLng(' + point.lat() + ',' + point.lng() + '),' + this.zoomHere + ');return false;">Zoom Here</a></div>';
+	        html3 = html + '<div ' + this.directionstyle + '>'
+                     + 'Get Directions: <a href="#" onclick="GEvent.trigger(' + this.myvar + '.lastmarker,\'click2\');return false;">To Here</a> - '
                      + 'From Here<br>'
                      + 'End address:<form action="http://maps.google.com/maps" method="get"" target="_blank">'
                      + '<input type="text" SIZE=35 MAXLENGTH=80 name="daddr" id="daddr" value="" />'
                      + '<INPUT value="Go" TYPE="SUBMIT">'
-                     + '<input type="hidden" name="saddr" value="' + point.lat() + ',' + point.lng() +  "(" + name + ")" + '"/>'
-                     + '<br><a href="#" onclick="GEvent.trigger(' + this.myvar +'.lastmarker,\'click\');return false;">&#171; Back</a> | <a href="#" onclick="' + this.myvar +'.map.setCenter(new GLatLng('+point.lat()+','+point.lng()+'),'+this.zoomHere+');return false;">Zoom Here</a></div>';
-    html4 = html + '<div '+this.directionstyle+'>'
+                     + '<input type="hidden" name="saddr" value="' + point.lat() + ',' + point.lng() + "(" + name + ")" + '"/>'
+                     + '<br><a href="#" onclick="GEvent.trigger(' + this.myvar + '.lastmarker,\'click\');return false;">&#171; Back</a> | <a href="#" onclick="' + this.myvar + '.map.setCenter(new GLatLng(' + point.lat() + ',' + point.lng() + '),' + this.zoomHere + ');return false;">Zoom Here</a></div>';
+	        html4 = html + '<div ' + this.directionstyle + '>'
                      + 'Search nearby: e.g. "pizza"<br>'
                      + '<form action="http://maps.google.com/maps" method="get"" target="_blank">'
                      + '<input type="text" SIZE=35 MAXLENGTH=80 name="q" id="q" value="" />'
                      + '<INPUT value="Go" TYPE="SUBMIT">'
                      + '<input type="hidden" name="near" value="' + name + ' @' + point.lat() + ',' + point.lng() + '"/>'
-         	     + '<br><a href="# onclick="GEvent.trigger(' + this.myvar +'.lastmarker,\'click\');return false;">&#171; Back</a> | <a href="#" onclick="' + this.myvar +'.map.setCenter(new GLatLng('+point.lat()+','+point.lng()+'),'+this.zoomHere+');return false;">Zoom Here</a></div>';
-    GEvent.addListener(m, "click2", function() {
-      m.openInfoWindowHtml(html2 + "</div>",iwoptions);
-    });
-    GEvent.addListener(m, "click3", function() {
-      m.openInfoWindowHtml(html3 + "</div>",iwoptions);
-    });
-    GEvent.addListener(m, "click4", function() {
-      m.openInfoWindowHtml(html4 + "</div>",iwoptions);
-    });
-  } else {
-    html1 = html;
-  }
- 
-	if(this.clickablemarkers){
-  		GEvent.addListener(m, "click", function() {
-  		  eval(myvar+".lastmarker = m");
-  	  	m.openInfoWindowHtml(html1 + "</div>",iwoptions);
-  		});
-	}
-  if(this.opts.domouseover){
-	m.mess = html1+"</div>";
-	m.geoxml = this;
-  	GEvent.addListener(m,"mouseover", function(point) {if(!point){ point=m.getPoint(); } m.geoxml.mb.showMess(m.mess,5000); } );
-	}
-  var nhtml = "";
-  var parm;
-  if (this.opts.sidebarid) {
-    	var folderid = this.myvar+"_folder"+idx;    
-    	var n = this.overlayman.markers.length; 
-	var blob = "&nbsp;<img style=\"vertical-align:text-top;padding:0;margin:0\" height=\"16\" border=\"0\" src=\""+href+"\">&nbsp;";
- 	parm =  this.myvar+"$$$" +name + "$$$marker$$$" + n +"$$$" + blob + "$$$" +visible+"$$$null"; 
-	m.sidebarid = this.myvar+"sb"+n;
-	m.hilite = this.hilite;
-	m.geoxml = this;
-	GEvent.addListener(m,"mouseover", function() {
-		var bar = Lance$(this.sidebarid);
-		if(bar && typeof bar !="undefined"){
-			bar.style.backgroundColor = this.hilite.color;
-			bar.style.color = this.hilite.textcolor;
-			}
-		});
-	GEvent.addListener(m,"mouseout", function() {
-		var bar = Lance$(this.sidebarid);
-		if(bar && typeof bar !="undefined"){
-			bar.style.background = "none"; 
-			bar.style.color = "";
-			}
-		});
+         	     + '<br><a href="# onclick="GEvent.trigger(' + this.myvar + '.lastmarker,\'click\');return false;">&#171; Back</a> | <a href="#" onclick="' + this.myvar + '.map.setCenter(new GLatLng(' + point.lat() + ',' + point.lng() + '),' + this.zoomHere + ');return false;">Zoom Here</a></div>';
+	        GEvent.addListener(m, "click2", function() {
+	            m.openInfoWindowHtml(html2 + "</div>", iwoptions);
+	        });
+	        GEvent.addListener(m, "click3", function() {
+	            m.openInfoWindowHtml(html3 + "</div>", iwoptions);
+	        });
+	        GEvent.addListener(m, "click4", function() {
+	            m.openInfoWindowHtml(html4 + "</div>", iwoptions);
+	        });
+	    } else {
+	        html1 = html;
+	    }
 
-  	} 
- 
-  if (!!this.opts.addmarker) {
-    this.opts.addmarker(m, name,idx, parm, visible);
-  } else {
-     this.overlayman.AddMarker(m, name,idx, parm, visible);
-  }
+	    if (this.clickablemarkers) {
+	        GEvent.addListener(m, "click", function() {
+	            eval(myvar + ".lastmarker = m");
+	            m.openInfoWindowHtml(html1 + "</div>", iwoptions);
+	        });
+	    }
+	    if (this.opts.domouseover) {
+	        m.mess = html1 + "</div>";
+	        m.geoxml = this;
+	        GEvent.addListener(m, "mouseover", function(point) { if (!point) { point = m.getPoint(); } m.geoxml.mb.showMess(m.mess, 5000); });
+	    }
+	    var nhtml = "";
+	    var parm;
+	    if (this.opts.sidebarid) {
+	        var folderid = this.myvar + "_folder" + idx;
+	        var n = this.overlayman.markers.length;
+	        var blob = "&nbsp;<img style=\"vertical-align:text-top;padding:0;margin:0\" height=\"16\" border=\"0\" src=\"" + href + "\">&nbsp;";
+	        parm = this.myvar + "$$$" + name + "$$$marker$$$" + n + "$$$" + blob + "$$$" + visible + "$$$null";
+	        m.sidebarid = this.myvar + "sb" + n;
+	        m.hilite = this.hilite;
+	        m.geoxml = this;
+	        GEvent.addListener(m, "mouseover", function() {
+	            var bar = Lance$(this.sidebarid);
+	            if (bar && typeof bar != "undefined") {
+	                bar.style.backgroundColor = this.hilite.color;
+	                bar.style.color = this.hilite.textcolor;
+	            }
+	        });
+	        GEvent.addListener(m, "mouseout", function() {
+	            var bar = Lance$(this.sidebarid);
+	            if (bar && typeof bar != "undefined") {
+	                bar.style.background = "none";
+	                bar.style.color = "";
+	            }
+	        });
 
-};
+	    }
+
+	    if (!!this.opts.addmarker) {
+	        this.opts.addmarker(m, name, idx, parm, visible);
+	    } else {
+	        this.overlayman.AddMarker(m, name, idx, parm, visible);
+	    }
+
+	};
 
 // Create Polyline
 
