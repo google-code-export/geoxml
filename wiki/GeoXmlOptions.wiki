@@ -33,5 +33,5 @@ polylabelclass: "mymarkerlabelclassname"
 A string containing the name of the CSS class to be used for ELabels on polygons.
 {{{
 iconFromDescription:true
-}}
+}}}
 enables the option which allows things like rss feeds and gml to find the image source in the atom/elements descriptions ala [http://www.dyasdesigns.com/geoxml/myweather.htm yahoo_weather]
