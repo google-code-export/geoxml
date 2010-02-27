@@ -478,12 +478,14 @@ GeoXml.prototype.processLine = function (pnum, lnum, idx){
 	p.idx = pnum;
   	p.onOver = function(){
 		var pline = this.geoxml.polylines[this.idx];
-		for(var l=0;l<pline.lineidx.length;l++){
-			var mark = this.geoxml.overlayman.markers[pline.lineidx[l]];
-			mark.realColor = mark.strokeColor; 
-			//mark.color = this.hilite.color;
-			mark.setStrokeStyle({color:this.hilite.color});
-			mark.redraw(true);
+		if(this.hidden!=true){
+			for(var l=0;l<pline.lineidx.length;l++){
+				var mark = this.geoxml.overlayman.markers[pline.lineidx[l]];
+				mark.realColor = mark.strokeColor; 
+				//mark.color = this.hilite.color;
+				mark.setStrokeStyle({color:this.hilite.color});
+				mark.redraw(true);
+				}
 			}
 		if(this.sidebar){
 			Lance$(this.sidebar).style.backgroundColor = this.hilite.color;
@@ -492,12 +494,15 @@ GeoXml.prototype.processLine = function (pnum, lnum, idx){
 		if(this.mess) { this.geoxml.mb.showMess(this.mess,5000); } else { this.title = "Click for more information about "+this.mytitle; }
 		};
   	p.onOut = function(){ 
+
 		var pline = this.geoxml.polylines[this.idx];
-		for(var l=0; l < pline.lineidx.length; l++){
+		if(this.hidden!=true){
+			for(var l=0; l < pline.lineidx.length; l++){
 			var mark = this.geoxml.overlayman.markers[pline.lineidx[l]];
 		//	mark.color = mark.realColor;
 		 	mark.setStrokeStyle({color:this.realColor});
 			mark.redraw(true);
+			}
 			}
 		this.geoxml.mb.hideMess();
 		if(this.sidebar){
@@ -630,7 +635,7 @@ GeoXml.prototype.finishPolygonJSON = function(op,idx,updatebound,lastpoly) {
 			}
 	 	if(this.geoxml.clickablepolys){
 			var poly = this.geoxml.polygons[this.polyindex];
-			if(poly) {
+			if(poly && this.hidden!=true) {
 			    for (var pg =0;pg < poly.length;pg++) {
 				var mark = this.geoxml.overlayman.markers[poly[pg]];
 				mark.realColor= mark.fillColor;
@@ -655,7 +660,7 @@ GeoXml.prototype.finishPolygonJSON = function(op,idx,updatebound,lastpoly) {
 		if(this.geoxml.clickablepolys) {
 			poly = this.geoxml.polygons[this.polyindex];
 			}
-		if(poly) {
+		if(poly && this.hidden != true) {
 			for (var pg =0;pg < poly.length;pg++) {
 				var mark = this.geoxml.overlayman.markers[poly[pg]];
 				mark.setFillStyle({color:mark.realColor});
@@ -758,8 +763,10 @@ GeoXml.prototype.finishLineJSON = function(po, idx, lastlinename){
 					{bar.style.backgroundColor = this.hilite.color;}
 				}
 			this.realColor = this.strokeColor;
-			if(m && typeof m!="undefined"){ m.setStrokeStyle({color:this.hilite.color}); }
-			this.redraw(true);
+			if(m.hidden!=true){
+				if(m && typeof m!="undefined"){ m.setStrokeStyle({color:this.hilite.color}); }
+				this.redraw(true);
+				}
 			if(this.mess) { this.geoxml.mb.showMess(this.mess,5000); } else { this.title = "Click for more information about "+this.mytitle; }
 			};
   	m.onOut = function(){ 	
@@ -767,8 +774,10 @@ GeoXml.prototype.finishLineJSON = function(po, idx, lastlinename){
 				var bar = Lance$(this.sidebarid);	
 				if(bar && typeof bar !="undefined"){bar.style.background = "none"; }
 				}
-			if(m && typeof m!="undefined")m.setStrokeStyle({color:this.realColor});
-			this.redraw(true);
+			if(m.hidden!=true){
+				if(m && typeof m!="undefined")m.setStrokeStyle({color:this.realColor});
+				this.redraw(true);
+				}
 			if(this.mess){ this.geoxml.mb.hideMess(); }
 			};
  
