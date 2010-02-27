@@ -1,6 +1,18 @@
 #This is a page for recording the various options for GeoXml
 = Introduction =
 GeoXml though has many options which correspond to those in [http://econym.org.uk/gmap/egeoxml.htm EGeoXml], we can record divergence here.
+
+{{{
+ markerfollowlinks: true 
+}}}
+the above specifies to open links in a new window or tab
+Where links are defined in the xml source (generally in RSS) and formatted thusly.
+
+<link>http://www.somedomain.com</link>
+<href>http://www.somedomain.com</href>
+or 
+<link href="http://www.somedomain.com"></link>
+
 {{{
  alwaysinfopop: true 
 }}}
