@@ -55,7 +55,7 @@ function GeoXml(myvar, map, url, opts) {
   if(typeof this.opts.allfoldersopen !="undefined"){ this.forcefoldersopen = this.opts.allfoldersopen;}
  
   this.clickablepolys = true;
-  if(typeof this.opts.zoomhere == "number"){
+  if(typeof this.opts.zoomhere == "number" ){
 	 this.zoomHere = this.opts.zoomhere;
  	 }
   if(typeof this.opts.clickablepolys == "boolean"){
@@ -499,7 +499,6 @@ GeoXml.prototype.processLine = function (pnum, lnum, idx){
 		if(this.hidden!=true){
 			for(var l=0; l < pline.lineidx.length; l++){
 			var mark = this.geoxml.overlayman.markers[pline.lineidx[l]];
-		//	mark.color = mark.realColor;
 		 	mark.setStrokeStyle({color:this.realColor});
 			mark.redraw(true);
 			}
@@ -775,7 +774,7 @@ GeoXml.prototype.finishLineJSON = function(po, idx, lastlinename){
 				if(bar && typeof bar !="undefined"){bar.style.background = "none"; }
 				}
 			if(m.hidden!=true){
-				if(m && typeof m!="undefined")m.setStrokeStyle({color:this.realColor});
+				if(m && typeof m!="undefined"){ m.setStrokeStyle({color:this.realColor}); }
 				this.redraw(true);
 				}
 			if(this.mess){ this.geoxml.mb.hideMess(); }
