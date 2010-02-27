@@ -1009,7 +1009,8 @@ GeoXml.prototype.toggleFolder = function(i){
 			f.style.display ="none"; 
 			if(tb){ tb.style.fontWeight = "bold"; }
 			}
-	};
+		 
+	}	
 
 GeoXml.prototype.saveJSON = function(){
 
@@ -1038,14 +1039,24 @@ GeoXml.prototype.saveJSON = function(){
 	};
 
 GeoXml.prototype.hide = function(){
-	this.toggleContents(1,false);
+	this.contentToggle(1,false);
+	this.overlayman.currentZoomLevel = -1; //invalidate current Zoom;
+	Clusterer.Display(this.overlayman);
 	};
 
 GeoXml.prototype.show = function(){
-	this.toggleContents(1,true);
+	this.contentToggle(1,true);
+	this.overlayman.currentZoomLevel = -1; //invalidate current Zoom;
+	Clusterer.Display(this.overlayman);
 	};
 
 GeoXml.prototype.toggleContents = function(i,show){
+	this.contentToggle(i,show);
+	this.overlayman.currentZoomLevel = -1; //invalidate current Zoom;
+	Clusterer.Display(this.overlayman);
+	}
+
+GeoXml.prototype.contentToggle = function(i,show){
  	var f = this.overlayman.folders[i];
 	var cb;
 	var j;
@@ -1092,7 +1103,7 @@ GeoXml.prototype.toggleContents = function(i,show){
 	 				cb = Lance$(this.myvar+''+sf[j]+'FCB');
 					if(cb && typeof cb!="undefined"){ cb.checked = (!!show);}
 					}
-				this.toggleContents(sf[j],show);
+				this.contentToggle(sf[j],show);
 				}
 			}
 		 }
@@ -1133,6 +1144,8 @@ GeoXml.prototype.showHide = function(a,show, p){
 				}
 		    }
 	    }
+	this.overlayman.currentZoomLevel = -1; //invalidate current Zoom;
+	Clusterer.Display(this.overlayman,true);
 	};
 
 
@@ -3393,7 +3406,7 @@ Clusterer.Display = function (clusterer)
 					}
 			vis = true;
 			}
-      		if(vis){ visibleMarkers.push(i); }
+      		if(vis && (marker.hidden == false)){ visibleMarkers.push(i); }
 	            else { nonvisibleMarkers.push(i); }
 	      
 		}
