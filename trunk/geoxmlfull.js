@@ -740,6 +740,7 @@ GeoXml.prototype.finishLineJSON = function(po, idx, lastlinename){
 		that.polylines.push(po);
 		pnum = that.polylines.length-1;
 		that.polylines[pnum].lineidx = [];
+		that.polylines[pnum].lineidx.push(n);
 		that.latestsidebar = that.myvar +"sb"+n;
 		}
 	else {
@@ -757,7 +758,7 @@ GeoXml.prototype.finishLineJSON = function(po, idx, lastlinename){
 					{bar.style.backgroundColor = this.hilite.color;}
 				}
 			this.realColor = this.strokeColor;
-			if(mark && typeof mark!="undefined"){ mark.setStrokeStyle({color:this.hilite.color}); }
+			if(m && typeof m!="undefined"){ m.setStrokeStyle({color:this.hilite.color}); }
 			this.redraw(true);
 			if(this.mess) { this.geoxml.mb.showMess(this.mess,5000); } else { this.title = "Click for more information about "+this.mytitle; }
 			};
@@ -766,7 +767,7 @@ GeoXml.prototype.finishLineJSON = function(po, idx, lastlinename){
 				var bar = Lance$(this.sidebarid);	
 				if(bar && typeof bar !="undefined"){bar.style.background = "none"; }
 				}
-			if(mark && typeof mark!="undefined")mark.setStrokeStyle({color:this.realColor});
+			if(m && typeof m!="undefined")m.setStrokeStyle({color:this.realColor});
 			this.redraw(true);
 			if(this.mess){ this.geoxml.mb.hideMess(); }
 			};
