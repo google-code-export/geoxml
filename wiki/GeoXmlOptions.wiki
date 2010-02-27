@@ -7,11 +7,13 @@ GeoXml though has many options which correspond to those in [http://econym.org.u
 }}}
 the above specifies to open links in a new window or tab
 Where links are defined in the xml source (generally in RSS) and formatted thusly.
-
+{{{
 <link>http://www.somedomain.com</link>
 <href>http://www.somedomain.com</href>
 or 
 <link href="http://www.somedomain.com"></link>
+}}}
+
 
 {{{
  alwaysinfopop: true 
