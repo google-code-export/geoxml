@@ -1,0 +1,10 @@
+#summary One-sentence summary of this page.
+
+= Networking MyMaps =
+
+Network links are cool... 
+My Maps is cool
+They almost always need a proxy defined.
+
+The following url shows a mymaps on my site.
+http://www.dyasdesigns.com/geoxml/park.htm
