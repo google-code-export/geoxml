@@ -1,6 +1,11 @@
 #summary One-sentence summary of this page.
+If your kml includes network links?
+They almost always need a proxy defined.
+additionally current support only
+follows the network link when it is
+initially loaded.
 
-= Networking MyMaps =
+= Networking My Maps =
 
 Network links are cool... 
 My Maps is cool
