@@ -90,6 +90,7 @@ function GeoXml(myvar, map, url, opts) {
   this.kmlicon =  this.publishdirectory +"images/ge.png";
   this.docicon = this.publishdirectory +"images/ge.png";
   this.foldericon = this.publishdirectory + "images/folder.png";
+  this.folderclosedicon = this.publishdirectory + "images/folderclosed.png";
   this.gmlicon = this.publishdirectory + "images/geo.gif";
   this.rssicon = this.publishdirectory + "images/rssb.png";
   this.globalicon = this.publishdirectory + "images/geo.gif"; 
@@ -101,6 +102,7 @@ function GeoXml(myvar, map, url, opts) {
   this.style.color = this.randomColor();
   this.style.fillcolor = this.randomColor();
   this.iwwidth = this.opts.iwwidth || 400;
+  this.maxiwwidth = this.opts.maxiwwidth || 0;
   this.iwheight = this.opts.iwheight || 250;
   this.lastmarker = {};   
   this.verySmall = 0.0000001;
@@ -289,6 +291,9 @@ GeoXml.prototype.createMarkerJSON = function(item,idx) {
 	    if (awidth < name.length * 10) {
 	        awidth = name.length * 10;
 	    }
+	    if(this.maxiwwidth && awidth > this.maxiwwidth ){
+		awidth = this.maxiwwidth;
+	    	}
 	    html = "<div style = 'width:" + awidth + "px'>" + "<h1 " + this.titlestyle + ">" + name + "</h1>" + "<div " + this.descstyle + ">" + desc + "</div>";
 	    var html1;
 	    if (this.opts.directions) {
@@ -1021,6 +1026,15 @@ GeoXml.prototype.createPolygon = function(lines,color,width,opacity,fillcolor,fi
 GeoXml.prototype.toggleFolder = function(i){
 	var f = Lance$(this.myvar+"_folder"+i);
 	var tb = Lance$(this.myvar+"TB"+i);
+
+	var folderimg = Lance$(this.myvar+'FB'+i);
+	if(folderimg.src == this.foldericon){
+		folderimg.src = this.folderclosedicon;
+		}
+	else {
+		folderimg.src = this.foldericon;
+		}
+
 	if(f.style.display=="none"){
 			f.style.display="";
 			if(tb){ tb.style.fontWeight = "normal"; }
@@ -2674,7 +2688,7 @@ GeoXml.prototype.createFolder = function(idx, title, sbid, icon, desc, snippet, 
 		htm += checked;
 		htm += 'onclick="'+this.myvar+'.toggleContents('+idx+',this.checked)">';
 		htm += '&nbsp;<span title="'+snippet+'" id="'+this.myvar+'TB'+idx+'" oncontextmenu=\"'+this.myvar+'.saveJSON('+idx+');\" onclick="'+this.myvar+'.toggleFolder('+idx+')" style=\"'+fw+'\">';
-		htm += '<img style=\"vertical-align:text-top;padding:0;margin:0\" height=\"16\" border=\"0\" src="'+icon+'" /></span>&nbsp;';
+		htm += '<img id=\"'+this.myvar+'FB'+idx+'\" style=\"vertical-align:text-top;padding:0;margin:0\" height=\"16\" border=\"0\" src="'+icon+'" /></span>&nbsp;';
 		htm += '<a href="#" onclick="'+this.myvar+'.overlayman.zoomToFolder('+idx+');'+this.myvar+'.mb.showMess(\''+desc+'\',3000);return false;">' + title + '</a><br><div id=\"'+folderid+'\" style="'+disp+'"></div></ul>';
 		if(sb){ sb.innerHTML = sb.innerHTML + htm; }
 		return folderid;
