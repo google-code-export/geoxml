@@ -89,6 +89,7 @@ function GeoXml(myvar, map, url, opts) {
   if(topwin.standalone){this.publishdirectory = "";}
   this.kmlicon =  this.publishdirectory +"images/ge.png";
   this.docicon = this.publishdirectory +"images/ge.png";
+  this.docclosedicon = this.publishdirectory +"images/geclosed.png";
   this.foldericon = this.publishdirectory + "images/folder.png";
   this.folderclosedicon = this.publishdirectory + "images/folderclosed.png";
   this.gmlicon = this.publishdirectory + "images/geo.gif";
@@ -907,6 +908,7 @@ GeoXml.prototype.setFolders = function() {
 			else {
 				fob.style.display='none';
 				if(fi.src==that.foldericon){ fi.src = that.folderclosedicon;}
+				if(fi.src==that.docicon){ fi.src = that.docclosedicon; }
 				}
 			}
 		}
@@ -1032,20 +1034,26 @@ GeoXml.prototype.toggleFolder = function(i){
 	var tb = Lance$(this.myvar+"TB"+i);
 
 	var folderimg = Lance$(this.myvar+'FB'+i);
-	if(folderimg.src == this.foldericon){
-		folderimg.src = this.folderclosedicon;
-		}
-	else {
-		folderimg.src = this.foldericon;
-		}
 
 	if(f.style.display=="none"){
 			f.style.display="";
 			if(tb){ tb.style.fontWeight = "normal"; }
+				if(folderimg.src == this.folderclosedicon){
+					folderimg.src = this.foldericon;
+					}
+				if(folderimg.src == this.docclosedicon){
+					folderimg.src = this.docicon;
+					}
 			}
 		else{ 
 			f.style.display ="none"; 
 			if(tb){ tb.style.fontWeight = "bold"; }
+				if(folderimg.src == this.foldericon){
+					folderimg.src = this.folderclosedicon;
+					}
+				if(folderimg.src == this.docicon){
+					folderimg.src = this.docclosedicon;
+					}
 			}
 		 
 	};
