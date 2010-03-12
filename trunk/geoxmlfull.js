@@ -896,13 +896,18 @@ GeoXml.prototype.setFolders = function() {
 	var len = that.kml.length;
 	for(var i=0;i<len;i++){
 		var fid = that.kml[i].folderid;
+		var fidstr = new String(fid);
+		var fb = fidstr.replace("_folder","FB");
+	 	var fi = Lance$(fb);
 		var fob = Lance$(fid);
  		if(fob !== null && fid!= that.opts.sidebarid) {
 			if(!!that.kml[i].open){
 				fob.style.display='block';
+				fi.src = that.foldericon;
 				}
 			else {
 				fob.style.display='none';
+				fi.src = that.folderclosedicon;
 				}
 			}
 		}
