@@ -903,11 +903,10 @@ GeoXml.prototype.setFolders = function() {
  		if(fob !== null && fid!= that.opts.sidebarid) {
 			if(!!that.kml[i].open){
 				fob.style.display='block';
-				fi.src = that.foldericon;
 				}
 			else {
 				fob.style.display='none';
-				fi.src = that.folderclosedicon;
+				if(fi.src==that.foldericon){ fi.src = that.folderclosedicon;}
 				}
 			}
 		}
