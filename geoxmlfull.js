@@ -381,7 +381,7 @@ GeoXml.prototype.createMarkerJSON = function(item,idx) {
 	        var blob = "&nbsp;<img style=\"vertical-align:text-top;padding:0;margin:0\" height=\""+this.sidebariconheight+"\" border=\"0\" src=\"" + href + "\">&nbsp;";
 		if(this.sidebarsnippet){
 		var desc2 = GeoXml.stripHTML(desc);
-		desc2 = desc2.substring(0,20);}
+		desc2 = desc2.substring(0,40);}
 		else {desc2 = '';	}
 	        parm = this.myvar + "$$$" + name + "$$$marker$$$" + n + "$$$" + blob + "$$$" + visible + "$$$null$$$" + desc2;
 	        m.sidebarid = this.myvar + "sb" + n;
@@ -2326,7 +2326,7 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {
 				}
 			if(this.sidebarsnippet && snippet==""){
 				snippet = GeoXml.stripHTML(desc);
-				desc2 = desc2.substring(0,20);}
+				desc2 = desc2.substring(0,40);}
    			parm =  this.myvar+"$$$" +ol.title + "$$$tiledoverlay$$$" + n +"$$$" + blob + "$$$" +ol.visible+"$$$"+(this.baseLayers.length-1)+"$$$"+snippet; 
 			var html = ol.desc;
 			var thismap = this.map; 
@@ -2344,7 +2344,7 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {
     			var blob = '<span style="background-color:black;border:2px solid brown;">&nbsp;&nbsp;&nbsp;&nbsp;</span> ';
 			if(this.sidebarsnippet && snippet==""){
 				snippet = GeoXml.stripHTML(desc);
-				desc2 = desc2.substring(0,20);}
+				desc2 = desc2.substring(0,40);}
    			parm =  this.myvar+"$$$" +title + "$$$polygon$$$" + n +"$$$" + blob + "$$$" +visible+"$$$null$$$"+snippet; 
    		 
 			var html = desc;
