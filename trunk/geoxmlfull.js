@@ -73,7 +73,16 @@ function GeoXml(myvar, map, url, opts) {
 		this.nolegend = true;
 		}
   if(typeof this.opts.preloadHTML == "undefined"){
-	  this.opts.preloadHTML = true;
+	this.opts.preloadHTML = true;
+  	}
+
+  this.sidebariconheight = 16;
+  if(typeof this.opts.sidebariconheight == "number"){
+	 this.sidebariconheight = this.opts.sidebariconheight;
+  	}
+  this.sidebarsnippet = false;
+ if(typeof this.opts.sidebarsnippet == "boolean"){
+	this.sidebarsnippet = this.opts.sidebarsnippet;
   	}
   this.hideall = false;
   if(typeof proxy!="undefined"){ this.proxy = proxy; }
@@ -135,6 +144,9 @@ function GeoXml(myvar, map, url, opts) {
   this.unnamedarea="un-named area";
   }
 
+GeoXml.stripHTML = function(s){
+	return (s.replace(/(<([^>]+)>)/ig,""));
+	};
 
 GeoXml.prototype.showIt = function (str, h, w) {
 	var features = "status=yes,resizable=yes,toolbar=0,height=" + h + ",width=" + h + ",scrollbars=yes";
@@ -193,14 +205,14 @@ GeoXml.prototype.createMarkerJSON = function(item,idx) {
 	if(item.shadow){ style.shadow = item.shadow; }
 		else{ style.shadow = null; }
 	if (!!that.opts.createmarker) {
-          	that.opts.createmarker(point, item.title, unescape(item.description), null, idx, style, item.visibility, item.id);
+          	that.opts.createmarker(point, item.title, unescape(item.description), null, idx, style, item.visibility, item.id, item.snip);
         	} 
 	else {
-          	that.createMarker(point, item.title, unescape(item.description), null, idx, style, item.visibility, item.id);
+          	that.createMarker(point, item.title, unescape(item.description), null, idx, style, item.visibility, item.id, item.snip);
         	}
 	};
 
-	GeoXml.prototype.createMarker = function(point, name, desc, style, idx, instyle, visible, kml_id, markerurl) {
+	GeoXml.prototype.createMarker = function(point, name, desc, style, idx, instyle, visible, kml_id, markerurl,snip) {
 	    var myvar = this.myvar;
 	    var icon;
 	    var bicon = new GIcon();
@@ -366,8 +378,12 @@ GeoXml.prototype.createMarkerJSON = function(item,idx) {
 	    if (this.opts.sidebarid) {
 	        var folderid = this.myvar + "_folder" + idx;
 	        var n = this.overlayman.markers.length;
-	        var blob = "&nbsp;<img style=\"vertical-align:text-top;padding:0;margin:0\" height=\"16\" border=\"0\" src=\"" + href + "\">&nbsp;";
-	        parm = this.myvar + "$$$" + name + "$$$marker$$$" + n + "$$$" + blob + "$$$" + visible + "$$$null";
+	        var blob = "&nbsp;<img style=\"vertical-align:text-top;padding:0;margin:0\" height=\""+this.sidebariconheight+"\" border=\"0\" src=\"" + href + "\">&nbsp;";
+		if(this.sidebarsnippet){
+		var desc2 = GeoXml.stripHTML(desc);
+		desc2 = desc2.substring(0,20);}
+		else {desc2 = '';	}
+	        parm = this.myvar + "$$$" + name + "$$$marker$$$" + n + "$$$" + blob + "$$$" + visible + "$$$null$$$" + desc2;
 	        m.sidebarid = this.myvar + "sb" + n;
 	        m.hilite = this.hilite;
 	        m.geoxml = this;
@@ -473,7 +489,14 @@ GeoXml.prototype.processLine = function (pnum, lnum, idx){
 	if(lnum == 0){
 	 	if(this.opts.sidebarid) {
     			var blob = '&nbsp;&nbsp;<span style=";border-left:'+op.width+'px solid '+op.color+';">&nbsp;</span> ';
-			parm =  this.myvar+"$$$" +op.name + "$$$polyline$$$" + n +"$$$" + blob + "$$$" +op.visibility+"$$$"+pnum+"$$$";
+				
+			if(this.sidebarsnippet){
+				var desc2 = GeoXml.stripHTML(desc);
+				desc2 = desc2.substring(0,20);
+				}
+			else {desc2 = '';}
+	      
+			parm =  this.myvar+"$$$" +op.name + "$$$polyline$$$" + n +"$$$" + blob + "$$$" + op.visibility + "$$$" + pnum + "$$$" + desc2;
 			this.latestsidebar = this.myvar +"sb"+n;
  			}
 		}
@@ -728,7 +751,11 @@ if(this.opts.polylabelclass && newgeom ) {
   if (this.basesidebar &&  newgeom) { 
     var folderid = this.myvar+"_folder"+idx;
     var blob = "<span style=\"background-color:" + op.color + ";border:2px solid "+p.strokeColor+";\">&nbsp;&nbsp;&nbsp;&nbsp;</span> ";
-    parm =  this.myvar+"$$$" +op.name + "$$$polygon$$$" + n +"$$$" + blob + "$$$" +op.visibility+"$$$null"; 
+    	if(this.sidebarsnippet){
+	var desc2 = GeoXml.stripHTML(desc);
+	desc2 = desc2.substring(0,20);}
+	else {desc2 = '';}
+    parm =  this.myvar+"$$$" +op.name + "$$$polygon$$$" + n +"$$$" + blob + "$$$" +op.visibility+"$$$null$$$"+desc2; 
     }
    if(updatebound) {
   	var ne = p.getBounds().getNorthEast();
@@ -824,7 +851,11 @@ GeoXml.prototype.finishLineJSON = function(po, idx, lastlinename){
 	if(that.basesidebar && lineisnew) {
     		var blob = '&nbsp;&nbsp;<span style=";border-left:'+po.weight+'px solid '+po.color+';">&nbsp;</span> ';
 		if(typeof po.visibility == "undefined"){ po.visibility = true; }
-		parm =  that.myvar+"$$$" +po.name + "$$$polyline$$$" + n +"$$$" + blob + "$$$" +po.visibility+"$$$"+(that.polylines.length-1)+"$$$";
+			if(this.sidebarsnippet){
+				var desc2 = GeoXml.stripHTML(desc);
+				desc2 = desc2.substring(0,20);}
+			else {desc2 = '';}
+		parm =  that.myvar+"$$$" +po.name + "$$$polyline$$$" + n +"$$$" + blob + "$$$" +po.visibility+"$$$"+(that.polylines.length-1)+"$$$"+desc2;
  		}	
 	
 	var ne = m.getBounds().getNorthEast();
@@ -1211,21 +1242,27 @@ GeoXml.prototype.toggleOff = function(a,show){
 	};
 
 // Sidebar factory method One - adds an entry to the sidebar
-GeoXml.addSidebar = function(myvar, name, type, e, graphic, ckd, i) {
+GeoXml.addSidebar = function(myvar, name, type, e, graphic, ckd, i, snippet) {
    var check = "checked";
    if(ckd=="false"){ check = ""; }
     var h="";
     var mid = myvar+"sb"+e;
+    if(snippet && snippet != "undefined"){
+	snippet = "<br><span class='"+myvar+"snip'>"+snippet+"</span>";
+    	}
+    else {
+	    snippet = "";
+    }
    switch(type) {
-   case  "marker" :  h = '<li id="'+mid+'" onmouseout="GEvent.trigger(' + myvar+ '.overlayman.markers['+e+'],\'mouseout\');" onmouseover="GEvent.trigger(' + myvar+ '.overlayman.markers['+e+'],\'mouseover\');" ><input id="'+myvar+''+e+'CB" type="checkbox" style="vertical-align:middle" '+check+' onclick="'+myvar+'.showHide('+e+',this.checked)"><a href="#" onclick="GEvent.trigger(' + myvar+ '.overlayman.markers['+e+'],\'click\');return false;">'+ graphic + name + '</a></li>';
+   case  "marker" :  h = '<li id="'+mid+'" onmouseout="GEvent.trigger(' + myvar+ '.overlayman.markers['+e+'],\'mouseout\');" onmouseover="GEvent.trigger(' + myvar+ '.overlayman.markers['+e+'],\'mouseover\');" ><input id="'+myvar+''+e+'CB" type="checkbox" style="vertical-align:middle" '+check+' onclick="'+myvar+'.showHide('+e+',this.checked)"><a href="#" onclick="GEvent.trigger(' + myvar+ '.overlayman.markers['+e+'],\'click\');return false;">'+ graphic + name + '</a>'+snippet+'</li>';
    break;
-  case  "polyline" :  h = '<li id="'+mid+'"  onmouseout="'+myvar+ '.overlayman.markers['+e+'].onOut();" onmouseover="'+myvar+ '.overlayman.markers['+e+'].onOver();" ><input id="'+myvar+''+e+'CB" type="checkbox" '+check+' onclick="'+myvar+'.showHide(null,this.checked,'+i+')"><span style="margin-top:6px;"><a href="#" onclick="GEvent.trigger(' + myvar+ '.overlayman.markers['+e+'],\'click\');return false;">&nbsp;' + graphic + name + '</a></span></li>';
+  case  "polyline" :  h = '<li id="'+mid+'"  onmouseout="'+myvar+ '.overlayman.markers['+e+'].onOut();" onmouseover="'+myvar+ '.overlayman.markers['+e+'].onOver();" ><input id="'+myvar+''+e+'CB" type="checkbox" '+check+' onclick="'+myvar+'.showHide(null,this.checked,'+i+')"><span style="margin-top:6px;"><a href="#" onclick="GEvent.trigger(' + myvar+ '.overlayman.markers['+e+'],\'click\');return false;">&nbsp;' + graphic + name + '</a></span>'+snippet+'</li>';
   break;
-  case "polygon": h = '<li id="'+mid+'"  onmouseout="'+myvar+ '.overlayman.markers['+e+'].onOut();" onmouseover="'+myvar+ '.overlayman.markers['+e+'].onOver();" ><input id="'+myvar+''+e+'CB" type="checkbox" '+check+' onclick="'+myvar+'.showHide('+e+',this.checked)"><span style="margin-top:6px;"><a href="#" onclick="GEvent.trigger(' + myvar+ '.overlayman.markers['+e+'],\'click\');return false;">&nbsp;' + graphic + name + '</a></span></nobr></li>';
+  case "polygon": h = '<li id="'+mid+'"  onmouseout="'+myvar+ '.overlayman.markers['+e+'].onOut();" onmouseover="'+myvar+ '.overlayman.markers['+e+'].onOver();" ><input id="'+myvar+''+e+'CB" type="checkbox" '+check+' onclick="'+myvar+'.showHide('+e+',this.checked)"><span style="margin-top:6px;"><a href="#" onclick="GEvent.trigger(' + myvar+ '.overlayman.markers['+e+'],\'click\');return false;">&nbsp;' + graphic + name + '</a></span></nobr>'+snippet+'</li>';
   break;
- case "groundoverlay": h = '<li id="'+mid+'"><input id="'+myvar+''+e+'CB" type="checkbox" '+check+' onclick="'+myvar+'.showHide('+e+',this.checked)"><span style="margin-top:6px;"><a href="#" onclick="GEvent.trigger(' + myvar+ '.overlayman.markers['+e+'],\'zoomto\');return false;">&nbsp;' + graphic + name + '</a></span></li>';
+ case "groundoverlay": h = '<li id="'+mid+'"><input id="'+myvar+''+e+'CB" type="checkbox" '+check+' onclick="'+myvar+'.showHide('+e+',this.checked)"><span style="margin-top:6px;"><a href="#" onclick="GEvent.trigger(' + myvar+ '.overlayman.markers['+e+'],\'zoomto\');return false;">&nbsp;' + graphic + name + '</a></span>'+snippet+'</li>';
    break;
-case "tiledoverlay": h = '<li id="'+mid+'"><nobr><input id="'+myvar+''+e+'CB" type="checkbox" '+check+' onclick="'+myvar+'.toggleOff('+e+',this.checked)"><span style="margin-top:6px;"><a href="#" oncontextMenu="'+myvar+'.upgradeLayer('+i+');return false;" onclick="GEvent.trigger(' + myvar+ '.overlayman.markers['+e+'],\'zoomto\');return false;">'+GeoXml.WMSICON +'&nbsp;'+ name + '</a><br />'+ graphic +'</span></li>';
+case "tiledoverlay": h = '<li id="'+mid+'"><nobr><input id="'+myvar+''+e+'CB" type="checkbox" '+check+' onclick="'+myvar+'.toggleOff('+e+',this.checked)"><span style="margin-top:6px;"><a href="#" oncontextMenu="'+myvar+'.upgradeLayer('+i+');return false;" onclick="GEvent.trigger(' + myvar+ '.overlayman.markers['+e+'],\'zoomto\');return false;">'+GeoXml.WMSICON +'&nbsp;'+ name + '</a><br />'+ graphic +'</span>'+snippet+'</li>';
    break;
 }
 return h;
@@ -1310,6 +1347,7 @@ GeoXml.prototype.makeDescription = function(elem, title, depth) {
 	 var len = elem.childNodes.length;
 	 var ln = 0;
 	 var val;
+
 	 while (len--) {
 		var subelem = elem.childNodes.item(ln);
 		var nn = subelem.nodeName;
@@ -1327,7 +1365,7 @@ GeoXml.prototype.makeDescription = function(elem, title, depth) {
 			
 			if(base.match(/#text|the_geom|SchemaData|ExtendedData|#cdata-section/)){}
 			else {
-				if(base.match(/Snippet/i)){
+				if(base.match(/Snippet/i)){ 
 						}
 				else {	
 					if(base.match(/SimpleData/)){
@@ -1641,6 +1679,7 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
      var poly_count=0;
      var coords = "";
      var markerurl="";
+     var snippet = "";
 
      l = mark.getAttribute("lat");
      if(typeof l!="undefined"){ lat = l; }
@@ -1759,6 +1798,10 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
 				break;
 			case "visibility":
  				if(nv == "0"){ visible = false; }
+				break;
+			case "Snippet":
+			case "snippet":
+				snippet = nv;
 				break;
 			case "href":
 			case "link":
@@ -1896,10 +1939,10 @@ GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
 	if(!skiprender){
 		if(typeof name == "undefined"){name= that.unnamedplace;}
         	if (!!that.opts.createmarker) {
-          		that.opts.createmarker(point, name, desc, styleid, idx, style, visible, kml_id, markerurl);
+          		that.opts.createmarker(point, name, desc, styleid, idx, style, visible, kml_id, markerurl, snippet);
         		} 
 		else {
-          		that.createMarker(point, name, desc, styleid, idx, style, visible, kml_id, markerurl);
+          		that.createMarker(point, name, desc, styleid, idx, style, visible, kml_id, markerurl, snippet);
         		}
 		}
 	}
@@ -2105,7 +2148,7 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {
 	var pm = [];
 	var sf = [];
 	var desc= "";
-	var snip ="";
+	var snippet ="";
 	var i;
 	var visible = false;
 	if(!this.hideall){visible = true; }
@@ -2211,9 +2254,10 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {
 				if(GXml.value(nextn) == "0") { visible = false; }
 				break;
 			case "snippet" :
-				snip = GXml.value(nextn);
+			case "Snippet" :
+				snippet = GeoXml.stripHTML(GXml.value(nextn));
+				snippet = snippet.replace(/\n/g,'');
 				break;
-
 			default:
 				for(var k=0;k<marks.length;k++){
 					if(nn == marks[k]){
@@ -2236,7 +2280,7 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {
 		this.overlayman.folderBounds.push(new GLatLngBounds());
   		this.kml.push(new KMLObj(title, desc, false, idx));
 		me = this.kml.length - 1;
-		folderid = this.createFolder(idx, title, sbid, icon, desc, snip, true, visible);
+		folderid = this.createFolder(idx, title, sbid, icon, desc, snippet, true, visible);
 		} 
 	else {
 		folderid = sbid;
@@ -2280,7 +2324,10 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {
 					blob = '<img src="'+myurl+'" style="width:100px" />';
 					}
 				}
-   			parm =  this.myvar+"$$$" +ol.title + "$$$tiledoverlay$$$" + n +"$$$" + blob + "$$$" +ol.visible+"$$$"+(this.baseLayers.length-1); 
+			if(this.sidebarsnippet && snippet==""){
+				snippet = GeoXml.stripHTML(desc);
+				desc2 = desc2.substring(0,20);}
+   			parm =  this.myvar+"$$$" +ol.title + "$$$tiledoverlay$$$" + n +"$$$" + blob + "$$$" +ol.visible+"$$$"+(this.baseLayers.length-1)+"$$$"+snippet; 
 			var html = ol.desc;
 			var thismap = this.map; 
 			GEvent.addListener(ol,"zoomto", function() { 	
@@ -2295,7 +2342,10 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {
 		if (this.basesidebar) {
     			var n = this.overlayman.markers.length;
     			var blob = '<span style="background-color:black;border:2px solid brown;">&nbsp;&nbsp;&nbsp;&nbsp;</span> ';
-   			parm =  this.myvar+"$$$" +title + "$$$polygon$$$" + n +"$$$" + blob + "$$$" +visible+"$$$null"; 
+			if(this.sidebarsnippet && snippet==""){
+				snippet = GeoXml.stripHTML(desc);
+				desc2 = desc2.substring(0,20);}
+   			parm =  this.myvar+"$$$" +title + "$$$polygon$$$" + n +"$$$" + blob + "$$$" +visible+"$$$null$$$"+snippet; 
    		 
 			var html = desc;
 			var thismap = this.map;
@@ -2700,7 +2750,7 @@ GeoXml.prototype.createFolder = function(idx, title, sbid, icon, desc, snippet, 
 		htm += checked;
 		htm += 'onclick="'+this.myvar+'.toggleContents('+idx+',this.checked)">';
 		htm += '&nbsp;<span title="'+snippet+'" id="'+this.myvar+'TB'+idx+'" oncontextmenu=\"'+this.myvar+'.saveJSON('+idx+');\" onclick="'+this.myvar+'.toggleFolder('+idx+')" style=\"'+fw+'\">';
-		htm += '<img id=\"'+this.myvar+'FB'+idx+'\" style=\"vertical-align:text-top;padding:0;margin:0\" height=\"16\" border=\"0\" src="'+icon+'" /></span>&nbsp;';
+		htm += '<img id=\"'+this.myvar+'FB'+idx+'\" style=\"vertical-align:text-top;padding:0;margin:0\" height=\"'+this.sidebariconheight+'\" border=\"0\" src="'+icon+'" /></span>&nbsp;';
 		htm += '<a href="#" onclick="'+this.myvar+'.overlayman.zoomToFolder('+idx+');'+this.myvar+'.mb.showMess(\''+desc+'\',3000);return false;">' + title + '</a><br><div id=\"'+folderid+'\" style="'+disp+'"></div></ul>';
 		if(sb){ sb.innerHTML = sb.innerHTML + htm; }
 		return folderid;
@@ -3339,16 +3389,16 @@ Clusterer.Display = function (clusterer)
 			        content = dest.innerHTML;
 				clon = clusterer.folderhtml[k].sort();
 				for(l=0; l<curlen; l++){
- 					bits = clon[l].split("$$$",7);
-          				content += clusterer.paren.sidebarfn(bits[0],bits[1],bits[2],bits[3],bits[4],bits[5],bits[6]); 
+ 					bits = clon[l].split("$$$",8);
+          				content += clusterer.paren.sidebarfn(bits[0],bits[1],bits[2],bits[3],bits[4],bits[5],bits[6],bits[7]); 
 					}
 				}
 			else {
 	 		       content = dest.innerHTML;
 			       clon = clusterer.folderhtml[k];
 				for(l=con; l<curlen; l++){
- 					bits = clon[l].split("$$$",7);
-          				content += clusterer.paren.sidebarfn(bits[0],bits[1],bits[2],bits[3],bits[4],bits[5],bits[6]);  
+ 					bits = clon[l].split("$$$",8);
+          				content += clusterer.paren.sidebarfn(bits[0],bits[1],bits[2],bits[3],bits[4],bits[5],bits[6],bits[7]);  
 					}
 				}
 				
