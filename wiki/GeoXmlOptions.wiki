@@ -66,3 +66,8 @@ sidebarsnippet:true
 use snippets (or first 20 characters from description) as a side bar entry
 example using both the above (note css to control snippet not really optional)
 http://www.dyasdesigns.com/geoxml/customsidebar.htm 
+
+{{{
+allfoldersopen:true
+}}}
+controls the side bar folders to show all there contents independent of  open and closed settings in the kml.
