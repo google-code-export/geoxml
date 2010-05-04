@@ -1648,370 +1648,371 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
       }  
     };
 
-GeoXml.prototype.handlePlacemark = function (mark, idx, depth, fullstyle) {
-     var that = this;
-     var desc, title, name, style;
-     title = "";
-     desc = "";
-     var styleid = 0;
-     var lat, lon;
-     var visible = true;
-     if(this.hideall){visible = false; }
-     var newcoords = false;
-     var outline;
-     var opacity;
-     var fillcolor;
-     var fillOpacity;
-     var color;
-     var width;
-     var pbounds;
-     var fill;
-     var points = [];
-     var lines = [];
-     var bits = [];
-     var point;
-     var cor, node, cm, nv;
-     var l, pos, p, j, k, cc;
-     var kml_id = mark.getAttribute("id");
-     var point_count =0;
-     var box_count=0;
-     var line_count=0;
-     var poly_count=0;
-     var coords = "";
-     var markerurl="";
-     var snippet = "";
+    GeoXml.prototype.handlePlacemark = function(mark, idx, depth, fullstyle) {
+        var that = this;
+        var desc, title, name, style;
+        title = "";
+        desc = "";
+        var styleid = 0;
+        var lat, lon;
+        var visible = true;
+        if (this.hideall) { visible = false; }
+        var newcoords = false;
+        var outline;
+        var opacity;
+        var fillcolor;
+        var fillOpacity;
+        var color;
+        var width;
+        var pbounds;
+        var fill;
+        var points = [];
+        var lines = [];
+        var bits = [];
+        var point;
+        var cor, node, cm, nv;
+        var l, pos, p, j, k, cc;
+        var kml_id = mark.getAttribute("id");
+        var point_count = 0;
+        var box_count = 0;
+        var line_count = 0;
+        var poly_count = 0;
+        var coords = "";
+        var markerurl = "";
+        var snippet = "";
 
-     l = mark.getAttribute("lat");
-     if(typeof l!="undefined"){ lat = l; }
-     l = mark.getAttribute("lon");
-     if(typeof l!="undefined"){
-		newcoords = true;
-		lon = l;
-		}
-     l = 0;
-     var coordset=mark.getElementsByTagName("coordinates");
-	if(coordset.length <1){
-	    coordset=mark.getElementsByTagName("gml:coordinates");
-	    }
-	if(coordset.length <1){
-	   	coordset = [];
-	    	var poslist = mark.getElementsByTagName("gml:posList");
-		if(!poslist.length){ 
-			poslist = mark.getElementsByTagName("posList");
-	       		}
-		for(l =0;l<poslist.length;l++){
-			coords = " ";
-			var plitem = GXml.value(poslist.item(l)) + " ";
-			plitem = plitem.replace(/(\s)+/g,' ');
-			cor = plitem.split(' ');
-			if(that.isWFS) {
-				for(cc=0;cc<(cor.length-1);cc++){
-					if(!isNaN(parseFloat(cor[cc])) && !isNaN(parseFloat(cor[cc+1]))){
-						coords += ""+parseFloat(cor[cc])+","+parseFloat(cor[cc+1]);
-						coords += " ";
-						cc++;
-						}
-					}
-				}
-			else {
-				for(cc=0;cc<(cor.length-1);cc++){
-						if(!isNaN(parseFloat(cor[cc])) && !isNaN(parseFloat(cor[cc+1]))){
-						coords += ""+parseFloat(cor[cc+1])+","+parseFloat(cor[cc]);
-						coords += " ";
-						cc++;
-						}
-					}
-				}
-			if(coords){
- 				if(poslist.item(l).parentNode && (poslist.item(l).parentNode.nodeName == "gml:LineString") ){ line_count++; }
-					else { poly_count++; }
-				cm = "<coordinates>"+coords+"</coordinates>";
-				node = GXml.parse(cm);
-				if(coordset.push){ coordset.push(node); }
-				}
-			}
-
-		pos = mark.getElementsByTagName("gml:pos");
-		if(pos.length <1) { pos = mark.getElementsByTagName("gml:pos"); }
-		if(pos.length){
-			for(p=0;p<pos.length;p++){
-				nv = GXml.value(pos.item(p))+" ";
-				cor = nv.split(' ');
-				if(!that.isWFS){
-					node = GXml.parse("<coordinates>"+cor[1]+","+cor[0]+"</coordinates>");
-					}
-				else {
-					node = GXml.parse("<coordinates>"+cor[0]+","+cor[1]+"</coordinates>");
-					}
-				if(coordset.push){ coordset.push(node); }
-				}
-			}
-	    }
-
-
-
-
- 	for (var ln = 0; ln < mark.childNodes.length; ln++) {
-		var nn = mark.childNodes.item(ln).nodeName;
-	 	nv = GXml.value(mark.childNodes.item(ln));
-		var ns = nn.split(":");
-		var base;
-		if(ns.length>1){ base = ns[1].toLowerCase(); }
-			else { base = ns[0].toLowerCase(); }	
-		
-		var processme = false;
-		switch(base){
-			case "name": 
-				name = nv;
-				if(name.length+depth > this.maxtitlewidth){ this.maxtitlewidth = name.length+depth; }
-				break;
-			case "title":
-				title = nv;
-				if(title.length+depth > this.maxtitlewidth){ this.maxtitlewidth = title.length+depth; }
-				break;
-			case "desc":
-			case "description":
-			    desc = GeoXml.getDescription(mark.childNodes.item(ln));
-			    if(!desc){ desc = nv; }
-			    if(that.opts.preloadHTML && desc && desc.match(/<(\s)*img/i)){
-					var preload = document.createElement("span");
-     					preload.style.visibility = "visible";
-					preload.style.position = "absolute";
-					preload.style.left = "-1200px";
-					preload.style.top = "-1200px";
-					preload.style.zIndex = this.overlayman.markers.length; 
-     					document.body.appendChild(preload);
-					preload.innerHTML = desc;
-					}
-			    	if(desc.match(/^http:\/\//i)){
-					var flink = desc.split(/(\s)+/);
-					if(flink.length>1){
-						desc = "<a href=\""+flink[0]+"\">"+flink[0]+"</a>";
-						for(var i=1;i<flink.length;i++){
-							desc += flink[i];
-							}
-						}
-					else {
-						desc = "<a href=\""+desc+"\">"+desc+"</a>";
-						}	
-					}
-				break;
-			case "visibility":
- 				if(nv == "0"){ visible = false; }
-				break;
-			case "Snippet":
-			case "snippet":
-				snippet = nv;
-				break;
-			case "href":
-			case "link":
-				if(nv){
-					desc += "<p><a target='_blank' href='"+nv+"'>link</a></p>";
-					markerurl = nv;
-					}
-				else {
-					var href = mark.childNodes.item(ln).getAttribute("href");
-					if(href){
-						var imtype = mark.childNodes.item(ln).getAttribute("type");
-					        if(imtype && imtype.match(/image/)){
-								desc += "<img style=\"width:256px\" src='"+href+"' />";
-							}
-						markerurl = href;
-						}
-					}
-				break;
-			case "author":
-				desc += "<p><b>author:</b>"+nv+"</p>";
-				break;
-			case "time":
-				desc += "<p><b>time:</b>"+nv+"</p>";
-				break;
-			case "lat":
-				lat=nv; 
-				break; 
-			case "long":
-				lon=nv; 
-				newcoords = true;
-				break;
-			case "point":
-				point_count++;
-                                processme = true;
-				break;
-			case "line":
-				line_count++;processme = true;break;
-			case "box":
-				box_count++;processme = true;break;
-			case "polygon":
-				poly_count++;processme = true;break;
-			case "styleurl":
-				styleid = nv;
-			 	break;
-			case "stylemap" :
-				var found = false;
-				node = mark.childNodes.item(ln);
-				for(j=0;(j<node.childNodes.length && !found);j++){ 
-					var pair = node.childNodes[j];
-					for(k =0;(k<pair.childNodes.length && !found);k++){
-						var pn = pair.childNodes[k].nodeName;
-						if(pn == "Style"){
-							style = this.handleStyle(pair.childNodes[k]);
-							found = true;
-							}
-						}
-					}
-				break;
-			case "Style":
-			case "style":
-				style = this.handleStyle(mark.childNodes.item(ln));
-				break;
-			}
-			if(processme){
-				cor = nv.split(' ');
-				coords = "";
-				for(cc=0;cc<(cor.length-1);cc++){
-					if(!isNaN(parseFloat(cor[cc])) && !isNaN(parseFloat(cor[cc+1]))){
-						coords += ""+parseFloat(cor[cc+1])+","+parseFloat(cor[cc]);
-						coords += " ";
-						cc++;
-						}
-					}
-				if(coords != ""){
-					node = GXml.parse("<coordinates>"+coords+"</coordinates>");
-					if(coordset.push){ coordset.push(node); }
-					}
-				}
-
-		}
-
-      if(!name && title) { name = title; }
-
-      if(fullstyle){
-		style = fullstyle;
-		}
-      if(styleid){
-		style = this.styles[styleid];
-		}
-
-      if(typeof desc == "undefined" || !desc || this.opts.makedescription){
-	    var dc = that.makeDescription(mark,"");
-	    desc = "<div id='currentpopup' style='overflow:auto;height:"+this.iwheight+"px' >"+dc.desc+"</div> ";
-	    if(!name && dc.title){
-			name = dc.title;
-			if((name.length +depth) > this.maxtitlewidth){
-				this.maxtitlewidth = name.length + depth;
-				}
-			}
-	    }
-      
-     if(newcoords && typeof lat!="undefined"){
-       		 if(lat){
-		    var cs = ""+lon+","+lat+" ";
-		    node = GXml.parse("<coordinates>"+cs+"</coordinates>");
-		    coordset.push(node);
-		    }
-		}
-    
- 
-
-     for(var c=0;c<coordset.length;c++){
-      var skiprender =false;
-     if(coordset[c].parentNode && (coordset[c].parentNode.nodeName.match(/^(gml:Box|gml:Envelope)/i))){
-	skiprender = true;
-	} 
-      coords = GXml.value(coordset[c]);
-      coords += " ";
-      coords=coords.replace(/(\s)+/g," "); 
-      // tidy the whitespace
-      coords=coords.replace(/^ /,"");    
-      // remove possible leading whitespace
-      //coords=coords +" "; 
-      ////ensure trailing space
-      coords=coords.replace(/, /,",");   
-      // tidy the commas
-      var path = coords.split(" ");
-      // Is this a polyline/polygon?
-      
-      if (path.length == 1 || path[1]== "") {
-        bits = path[0].split(",");
-        point = new GLatLng(parseFloat(bits[1]),parseFloat(bits[0]));
-        this.overlayman.folderBounds[idx].extend(point);
-        // Does the user have their own createmarker function?
-	if(!skiprender){
-		if(typeof name == "undefined"){name= that.unnamedplace;}
-        	if (!!that.opts.createmarker) {
-          		that.opts.createmarker(point, name, desc, styleid, idx, style, visible, kml_id, markerurl, snippet);
-        		} 
-		else {
-          		that.createMarker(point, name, desc, styleid, idx, style, visible, kml_id, markerurl, snippet);
-        		}
-		}
-	}
-      else {
-        // Build the list of points
-        points = [];
-        pbounds = new GLatLngBounds();
-       	 for (p=0; p<path.length-1; p++) {
-         	 bits = path[p].split(",");
-         	 point = new GLatLng(parseFloat(bits[1]),parseFloat(bits[0]));
-         	 points.push(point);
-         	 pbounds.extend(point);
-         	 }
-		this.overlayman.folderBounds[idx].extend(pbounds.getSouthWest());
-	 	this.overlayman.folderBounds[idx].extend(pbounds.getNorthEast());
-		this.bounds.extend(pbounds.getSouthWest());
-		this.bounds.extend(pbounds.getNorthEast());
-		if(!skiprender){ lines.push(points); }
-	    }
-	}
- 	if(!lines || lines.length <1) { return; }
-        var linestring=mark.getElementsByTagName("LineString");
-	if(linestring.length <1){
-		linestring=mark.getElementsByTagName("gml:LineString");
-		}
-        if (linestring.length || line_count>0) {
-          // its a polyline grab the info from the style
-          if (!!style) {
-            width = style.width; 
-            color = style.color; 
-            opacity = style.opacity; 
-          } else {
-            width = this.style.width;
-            color = this.style.color;
-            opacity = this.style.opacity;
-          }
-          // Does the user have their own createmarker function?
-	if(typeof name == "undefined" ){ name=unnamedpath; }
-          if (!!that.opts.createpolyline) {
-            that.opts.createpolyline(lines,color,width,opacity,pbounds,name,desc,idx,visible,kml_id);
-          } else {
-            that.createPolyline(lines,color,width,opacity,pbounds,name,desc,idx,visible,kml_id);
-          }
+        l = mark.getAttribute("lat");
+        if (typeof l != "undefined") { lat = l; }
+        l = mark.getAttribute("lon");
+        if (typeof l != "undefined") {
+            newcoords = true;
+            lon = l;
         }
-        var polygons=mark.getElementsByTagName("Polygon");
-	if(polygons.length <1){
-		polygons=mark.getElementsByTagName("gml:Polygon");
-		}
-        if (polygons.length || poly_count>0) {
-          // its a polygon grab the info from the style
-          if (!!style) {
-            width = style.width; 
-            color = style.color; 
-            opacity = style.opacity; 
-            fillOpacity = style.fillOpacity; 
-            fillcolor = style.fillcolor;
-	    fill = style.fill;
-	    outline = style.outline; 
-          } 
-	if(typeof fill == "undefined"){ fill = 1; }
-	if(typeof color == "undefined"){ color = this.style.color; }
-	if(typeof fillcolor == "undefined"){ fillcolor = this.randomColor(); }
-	if(typeof name == "undefined" ){ name=that.unnamedarea; }
- 	if (!!that.opts.createpolygon) {
-            that.opts.createpolygon(lines,color,width,opacity,fillcolor,fillOpacity,pbounds,name,desc,idx,visible,fill,outline,kml_id);
-          } else {
-            that.createPolygon(lines,color,width,opacity,fillcolor,fillOpacity,pbounds,name,desc,idx,visible,fill,outline,kml_id);
-          }
-      }  
+        l = 0;
+        var coordset = mark.getElementsByTagName("coordinates");
+        if (coordset.length < 1) {
+            coordset = mark.getElementsByTagName("gml:coordinates");
+        }
+        if (coordset.length < 1) {
+            coordset = [];
+            var poslist = mark.getElementsByTagName("gml:posList");
+            if (!poslist.length) {
+                poslist = mark.getElementsByTagName("posList");
+            }
+            for (l = 0; l < poslist.length; l++) {
+                coords = " ";
+                var plitem = GXml.value(poslist.item(l)) + " ";
+                plitem = plitem.replace(/(\s)+/g, ' ');
+                cor = plitem.split(' ');
+                if (that.isWFS) {
+                    for (cc = 0; cc < (cor.length - 1); cc++) {
+                        if (!isNaN(parseFloat(cor[cc])) && !isNaN(parseFloat(cor[cc + 1]))) {
+                            coords += "" + parseFloat(cor[cc]) + "," + parseFloat(cor[cc + 1]);
+                            coords += " ";
+                            cc++;
+                        }
+                    }
+                }
+                else {
+                    for (cc = 0; cc < (cor.length - 1); cc++) {
+                        if (!isNaN(parseFloat(cor[cc])) && !isNaN(parseFloat(cor[cc + 1]))) {
+                            coords += "" + parseFloat(cor[cc + 1]) + "," + parseFloat(cor[cc]);
+                            coords += " ";
+                            cc++;
+                        }
+                    }
+                }
+                if (coords) {
+                    if (poslist.item(l).parentNode && (poslist.item(l).parentNode.nodeName == "gml:LineString")) { line_count++; }
+                    else { poly_count++; }
+                    cm = "<coordinates>" + coords + "</coordinates>";
+                    node = GXml.parse(cm);
+                    if (coordset.push) { coordset.push(node); }
+                }
+            }
+
+            pos = mark.getElementsByTagName("gml:pos");
+            if (pos.length < 1) { pos = mark.getElementsByTagName("gml:pos"); }
+            if (pos.length) {
+                for (p = 0; p < pos.length; p++) {
+                    nv = GXml.value(pos.item(p)) + " ";
+                    cor = nv.split(' ');
+                    if (!that.isWFS) {
+                        node = GXml.parse("<coordinates>" + cor[1] + "," + cor[0] + "</coordinates>");
+                    }
+                    else {
+                        node = GXml.parse("<coordinates>" + cor[0] + "," + cor[1] + "</coordinates>");
+                    }
+                    if (coordset.push) { coordset.push(node); }
+                }
+            }
+        }
+
+
+
+
+        for (var ln = 0; ln < mark.childNodes.length; ln++) {
+            var nn = mark.childNodes.item(ln).nodeName;
+            nv = GXml.value(mark.childNodes.item(ln));
+            var ns = nn.split(":");
+            var base;
+            if (ns.length > 1) { base = ns[1].toLowerCase(); }
+            else { base = ns[0].toLowerCase(); }
+
+            var processme = false;
+            switch (base) {
+                case "name":
+                    name = nv;
+                    if (name.length + depth > this.maxtitlewidth) { this.maxtitlewidth = name.length + depth; }
+                    break;
+                case "title":
+                    title = nv;
+                    if (title.length + depth > this.maxtitlewidth) { this.maxtitlewidth = title.length + depth; }
+                    break;
+                case "desc":
+                case "description":
+                    desc = GeoXml.getDescription(mark.childNodes.item(ln));
+                    if (!desc) { desc = nv; }
+                    if (that.opts.preloadHTML && desc && desc.match(/<(\s)*img/i)) {
+                        var preload = document.createElement("span");
+                        preload.style.visibility = "visible";
+                        preload.style.position = "absolute";
+                        preload.style.left = "-1200px";
+                        preload.style.top = "-1200px";
+                        preload.style.zIndex = this.overlayman.markers.length;
+                        document.body.appendChild(preload);
+                        preload.innerHTML = desc;
+                    }
+                    if (desc.match(/^http:\/\//i)) {
+                        var flink = desc.split(/(\s)+/);
+                        if (flink.length > 1) {
+                            desc = "<a href=\"" + flink[0] + "\">" + flink[0] + "</a>";
+                            for (var i = 1; i < flink.length; i++) {
+                                desc += flink[i];
+                            }
+                        }
+                        else {
+                            desc = "<a href=\"" + desc + "\">" + desc + "</a>";
+                        }
+                    }
+                    break;
+                case "visibility":
+                    if (nv == "0") { visible = false; }
+                    break;
+                case "Snippet":
+                case "snippet":
+                    snippet = nv;
+                    break;
+                case "href":
+                case "link":
+                    if (nv) {
+                        desc += "<p><a target='_blank' href='" + nv + "'>link</a></p>";
+                        markerurl = nv;
+                    }
+                    else {
+                        var href = mark.childNodes.item(ln).getAttribute("href");
+                        if (href) {
+                            var imtype = mark.childNodes.item(ln).getAttribute("type");
+                            if (imtype && imtype.match(/image/)) {
+                                desc += "<img style=\"width:256px\" src='" + href + "' />";
+                            }
+                            markerurl = href;
+                        }
+                    }
+                    break;
+                case "author":
+                    desc += "<p><b>author:</b>" + nv + "</p>";
+                    break;
+                case "time":
+                    desc += "<p><b>time:</b>" + nv + "</p>";
+                    break;
+                case "lat":
+                    lat = nv;
+                    break;
+                case "long":
+                    lon = nv;
+                    newcoords = true;
+                    break;
+                case "point":
+                    point_count++;
+                    processme = true;
+                    break;
+                case "line":
+                    line_count++; processme = true; break;
+                case "box":
+                    box_count++; processme = true; break;
+                case "polygon":
+                    poly_count++; processme = true; break;
+                case "styleurl":
+                    styleid = nv;
+                    break;
+                case "stylemap":
+                    var found = false;
+                    node = mark.childNodes.item(ln);
+                    for (j = 0; (j < node.childNodes.length && !found); j++) {
+                        var pair = node.childNodes[j];
+                        for (k = 0; (k < pair.childNodes.length && !found); k++) {
+                            var pn = pair.childNodes[k].nodeName;
+                            if (pn == "Style") {
+                                style = this.handleStyle(pair.childNodes[k]);
+                                found = true;
+                            }
+                        }
+                    }
+                    break;
+                case "Style":
+                case "style":
+                    styleid = null;
+                    style = this.handleStyle(mark.childNodes.item(ln));
+                    break;
+            }
+            if (processme) {
+                cor = nv.split(' ');
+                coords = "";
+                for (cc = 0; cc < (cor.length - 1); cc++) {
+                    if (!isNaN(parseFloat(cor[cc])) && !isNaN(parseFloat(cor[cc + 1]))) {
+                        coords += "" + parseFloat(cor[cc + 1]) + "," + parseFloat(cor[cc]);
+                        coords += " ";
+                        cc++;
+                    }
+                }
+                if (coords != "") {
+                    node = GXml.parse("<coordinates>" + coords + "</coordinates>");
+                    if (coordset.push) { coordset.push(node); }
+                }
+            }
+
+        }
+
+        if (!name && title) { name = title; }
+
+        if (fullstyle) {
+            style = fullstyle;
+        }
+        if (styleid) {
+            style = this.styles[styleid];
+        }
+
+        if (typeof desc == "undefined" || !desc || this.opts.makedescription) {
+            var dc = that.makeDescription(mark, "");
+            desc = "<div id='currentpopup' style='overflow:auto;height:" + this.iwheight + "px' >" + dc.desc + "</div> ";
+            if (!name && dc.title) {
+                name = dc.title;
+                if ((name.length + depth) > this.maxtitlewidth) {
+                    this.maxtitlewidth = name.length + depth;
+                }
+            }
+        }
+
+        if (newcoords && typeof lat != "undefined") {
+            if (lat) {
+                var cs = "" + lon + "," + lat + " ";
+                node = GXml.parse("<coordinates>" + cs + "</coordinates>");
+                coordset.push(node);
+            }
+        }
+
+
+
+        for (var c = 0; c < coordset.length; c++) {
+            var skiprender = false;
+            if (coordset[c].parentNode && (coordset[c].parentNode.nodeName.match(/^(gml:Box|gml:Envelope)/i))) {
+                skiprender = true;
+            }
+            coords = GXml.value(coordset[c]);
+            coords += " ";
+            coords = coords.replace(/(\s)+/g, " ");
+            // tidy the whitespace
+            coords = coords.replace(/^ /, "");
+            // remove possible leading whitespace
+            //coords=coords +" "; 
+            ////ensure trailing space
+            coords = coords.replace(/, /, ",");
+            // tidy the commas
+            var path = coords.split(" ");
+            // Is this a polyline/polygon?
+
+            if (path.length == 1 || path[1] == "") {
+                bits = path[0].split(",");
+                point = new GLatLng(parseFloat(bits[1]), parseFloat(bits[0]));
+                this.overlayman.folderBounds[idx].extend(point);
+                // Does the user have their own createmarker function?
+                if (!skiprender) {
+                    if (typeof name == "undefined") { name = that.unnamedplace; }
+                    if (!!that.opts.createmarker) {
+                        that.opts.createmarker(point, name, desc, styleid, idx, style, visible, kml_id, markerurl, snippet);
+                    }
+                    else {
+                        that.createMarker(point, name, desc, styleid, idx, style, visible, kml_id, markerurl, snippet);
+                    }
+                }
+            }
+            else {
+                // Build the list of points
+                points = [];
+                pbounds = new GLatLngBounds();
+                for (p = 0; p < path.length - 1; p++) {
+                    bits = path[p].split(",");
+                    point = new GLatLng(parseFloat(bits[1]), parseFloat(bits[0]));
+                    points.push(point);
+                    pbounds.extend(point);
+                }
+                this.overlayman.folderBounds[idx].extend(pbounds.getSouthWest());
+                this.overlayman.folderBounds[idx].extend(pbounds.getNorthEast());
+                this.bounds.extend(pbounds.getSouthWest());
+                this.bounds.extend(pbounds.getNorthEast());
+                if (!skiprender) { lines.push(points); }
+            }
+        }
+        if (!lines || lines.length < 1) { return; }
+        var linestring = mark.getElementsByTagName("LineString");
+        if (linestring.length < 1) {
+            linestring = mark.getElementsByTagName("gml:LineString");
+        }
+        if (linestring.length || line_count > 0) {
+            // its a polyline grab the info from the style
+            if (!!style) {
+                width = style.width;
+                color = style.color;
+                opacity = style.opacity;
+            } else {
+                width = this.style.width;
+                color = this.style.color;
+                opacity = this.style.opacity;
+            }
+            // Does the user have their own createmarker function?
+            if (typeof name == "undefined") { name = unnamedpath; }
+            if (!!that.opts.createpolyline) {
+                that.opts.createpolyline(lines, color, width, opacity, pbounds, name, desc, idx, visible, kml_id);
+            } else {
+                that.createPolyline(lines, color, width, opacity, pbounds, name, desc, idx, visible, kml_id);
+            }
+        }
+        var polygons = mark.getElementsByTagName("Polygon");
+        if (polygons.length < 1) {
+            polygons = mark.getElementsByTagName("gml:Polygon");
+        }
+        if (polygons.length || poly_count > 0) {
+            // its a polygon grab the info from the style
+            if (!!style) {
+                width = style.width;
+                color = style.color;
+                opacity = style.opacity;
+                fillOpacity = style.fillOpacity;
+                fillcolor = style.fillcolor;
+                fill = style.fill;
+                outline = style.outline;
+            }
+            if (typeof fill == "undefined") { fill = 1; }
+            if (typeof color == "undefined") { color = this.style.color; }
+            if (typeof fillcolor == "undefined") { fillcolor = this.randomColor(); }
+            if (typeof name == "undefined") { name = that.unnamedarea; }
+            if (!!that.opts.createpolygon) {
+                that.opts.createpolygon(lines, color, width, opacity, fillcolor, fillOpacity, pbounds, name, desc, idx, visible, fill, outline, kml_id);
+            } else {
+                that.createPolygon(lines, color, width, opacity, fillcolor, fillOpacity, pbounds, name, desc, idx, visible, fill, outline, kml_id);
+            }
+        }
     };
 
 GeoXml.prototype.makeIcon = function(tempstyle, href){
