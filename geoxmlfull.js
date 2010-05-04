@@ -1358,7 +1358,7 @@ GeoXml.prototype.makeDescription = function(elem, title, depth) {
 			}
 		else { base = nn;}
  	
-		if(base.match(/^(lat|long|visible|visibility|boundedBy|StyleMap|styleUrl|posList|coordinates|Style|Polygon|LineString|Point|LookAt|Envelope|Box|MultiPolygon|where|guid)/)){
+		if(base.match(/^(lat|long|visible|visibility|boundedBy|StyleMap|drawOrder|styleUrl|posList|coordinates|Style|Polygon|LineString|Point|LookAt|drawOrder|Envelope|Box|MultiPolygon|where|guid)/)){
  			currdeschead = ""; 
 			}
 		else {
