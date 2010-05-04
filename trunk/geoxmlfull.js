@@ -2081,7 +2081,7 @@ GeoXml.prototype.handleStyle = function(style,sid){
       var linestyles=style.getElementsByTagName("LineStyle");
       if (linestyles.length > 0) {
         var width = parseInt(GXml.value(linestyles[0].getElementsByTagName("width")[0]),10);
-        if (width < 1) {width = 5;}
+        if (width < 1) {width = 1;}
         color = GXml.value(linestyles[0].getElementsByTagName("color")[0]);
         aa = color.substr(0,2);
         bb = color.substr(2,2);
