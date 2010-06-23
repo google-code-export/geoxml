@@ -71,3 +71,10 @@ http://www.dyasdesigns.com/geoxml/customsidebar.htm
 allfoldersopen:true
 }}}
 controls the side bar folders to show all there contents independent of  open and closed settings in the kml.
+
+{{{
+hilite : { color:"#aaffff",opacity: 0.3, textcolor:"#000000" }
+}}}
+
+Sets opacity and color settings for sidebar and polygon fill elements
+.http://www.dyasdesigns.com/geoxml/c2020.htm 
