@@ -524,6 +524,7 @@ GeoXml.prototype.processLine = function (pnum, lnum, idx){
 			for(var l=0;l<pline.lineidx.length;l++){
 				var mark = this.geoxml.overlayman.markers[pline.lineidx[l]];
 				mark.realColor = mark.strokeColor; 
+				mark.realOpacity = mark.fillOpacity;
 				//mark.color = this.hilite.color;
 				mark.setStrokeStyle({color:this.hilite.color});
 				mark.redraw(true);
@@ -541,7 +542,7 @@ GeoXml.prototype.processLine = function (pnum, lnum, idx){
 		if(this.hidden!=true){
 			for(var l=0; l < pline.lineidx.length; l++){
 			var mark = this.geoxml.overlayman.markers[pline.lineidx[l]];
-		 	mark.setStrokeStyle({color:this.realColor});
+		 	mark.setStrokeStyle({color:this.realColor,opacity:this.realOpacity});
 			mark.redraw(true);
 			}
 			}
@@ -549,6 +550,7 @@ GeoXml.prototype.processLine = function (pnum, lnum, idx){
 		if(this.sidebar){
 			Lance$(this.sidebar).style.background = "none";
 			Lance$(this.sidebar).style.color = "";
+
 			}
 		};
 
@@ -680,7 +682,8 @@ GeoXml.prototype.finishPolygonJSON = function(op,idx,updatebound,lastpoly) {
 			    for (var pg =0;pg < poly.length;pg++) {
 				var mark = this.geoxml.overlayman.markers[poly[pg]];
 				mark.realColor= mark.fillColor;
-				mark.setFillStyle({color:this.hilite.color});
+				mark.realOpacity = mark.fillOpacity;
+				mark.setFillStyle({color:this.hilite.color,opacity:this.hilite.opacity});
 				mark.redraw(true);
 				}
 			}
@@ -704,7 +707,7 @@ GeoXml.prototype.finishPolygonJSON = function(op,idx,updatebound,lastpoly) {
 		if(poly && this.hidden != true) {
 			for (var pg =0;pg < poly.length;pg++) {
 				var mark = this.geoxml.overlayman.markers[poly[pg]];
-				mark.setFillStyle({color:mark.realColor});
+				mark.setFillStyle({color:mark.realColor,opacity:mark.realOpacity});
 				mark.redraw(true);
 				}
 			}
@@ -1043,11 +1046,13 @@ GeoXml.prototype.createPolygon = function(lines,color,width,opacity,fillcolor,fi
   if(!fillcolor){ p.obj.color = this.randomColor(); }
   else {p.obj.color = fillcolor;}
 
-  if(!opacity){p.obj.opacity= this.style.opacity;}
-	else{ p.obj.opacity = opacity; }
+  if(!!opacity){p.obj.opacity= opacity;}
+	else{ p.obj.opacity = this.style.opacity; }
 
-  if(typeof fillOpacity == "undefined"){p.obj.fillOpacity = this.style.fillOpacity;}
-   else { p.obj.fillOpacity = fillOpacity;}
+  if(!!fillOpacity){p.obj.fillOpacity = fillOpacity;}
+   else { 
+	   p.obj.fillOpacity = this.style.fillopacity;
+   	}
 
   if(!width){p.weight = this.style.width;}
   else{  p.weight = width; }
