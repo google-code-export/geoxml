@@ -3890,6 +3890,9 @@ MessageBox.prototype.centerThis = function(){
 	};
 
 MessageBox.prototype.showMess = function (val,temp){
+	if(this.paren.quiet){
+		return;
+		}
 	val = unescape(val);
 	if(this.eraseMess){ clearTimeout(this.eraseMess); }
 	if(!this.mb){ this.mb = Lance$(this.id); }
