@@ -3869,6 +3869,9 @@ MessageBox = function(map,paren,myvar,mb){
 	};
 
 MessageBox.prototype.hideMess = function(){
+	if(this.paren.quiet){
+		return;
+		}
   	this.mb.style.visiblity ="hidden"; 
 	this.mb.style.left = "-1200px";
 	this.mb.style.top = "-1200px";
