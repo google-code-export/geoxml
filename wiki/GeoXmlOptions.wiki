@@ -1,18 +1,16 @@
 #This is a page for recording the various options for GeoXml
 = Introduction =
 GeoXml though has many options which correspond to those in [http://econym.org.uk/gmap/egeoxml.htm EGeoXml], we can record divergence here.
-
-
 ----
-Urlparsing  is built in to GeoXml 
+Url parsing  is built in to GeoXml 
 http://www.dyasdesigns.com/geoxml/c2020.htm?openbyname=Babcock%20Ranch
+The above opens the placemark associated with the name
 
-also supported openbyid  // uses xml id
+Like above also supported openbyid  // uses xml id
 
-The following are all equivalent
-also supported kml, src, url 
-they load the data after the page is loaded.
-
+Like above the following are all equivalent and load an external src (but only within domain restrictions).
+ kml=pathofkml, src=pathofsrc, url=pathof source
+ 
 ----
 {{{
  markerfollowlinks: true 
