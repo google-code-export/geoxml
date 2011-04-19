@@ -501,7 +501,7 @@ GeoXml.prototype.processLine = function (pnum, lnum, idx){
  			}
 		}
 
-	if(lnum < line.length){
+	if(lnum < op.lines.length){
 		setTimeout(this.myvar+".processLine("+pnum+","+(lnum+1)+",'"+idx+"');",15);
 		if(this.opts.sidebarid) { p.sidebar = this.latestsidebar; }
 		}
