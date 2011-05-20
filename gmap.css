@@ -10,6 +10,6 @@ a { text-decoration:none }
 #the_side_bar ul li ul li { font-size: 10px; }
 #the_side_bar ul li ul li ul li { font-size: 9px; }
 #the_side_bar ul li ul li ul li ul li { font-size: 8px; } 
- 
+#mapDiv {font-size: 0px; }
 .inView { display:block }
 .outView { color:silver; opacity:0.4; alpha(opacity=40) }
