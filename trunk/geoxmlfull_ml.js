@@ -59,13 +59,16 @@ function GeoXml(myvar, map, url, opts) {
   div2.style.position = "absolute";
   div2.style.padding = "0px";
   div2.style.margin = "0px";
+  div2.style.fontSize = "0px";
   div2.zIndex = 1001;
-  
+  var c = map.getContainer();
+  c.style.fontSize = "0px";
   var div = document.createElement("div");
   div.style.border = ""; 
   div.style.position = "absolute";
   div.style.padding = "0px";
   div.style.margin = "0px";
+  div.style.fontSize = "0px";
   div.zIndex = 1001;
   map.getPane(G_MAP_MARKER_PANE).appendChild(div);
   
@@ -309,7 +312,7 @@ GeoXml.prototype.createMarkerJSON = function(item,idx) {
 		markeroptions.width = icon.iconSize.width;
 		//alert(icon.iconAnchor);
 		markeroptions.left =  icon.iconAnchor.x;
-		markeroptions.top =  markeroptions.height + parseInt(markeroptions.height/2) - icon.iconAnchor.y + 1;
+		markeroptions.top =  icon.iconAnchor.y + 1;
 		markeroptions.pane = this.markerpane;
 	    var m = new LMarker(point, markeroptions);
 	    m.title = name;
@@ -3899,6 +3902,7 @@ LMarker.prototype.initialize = function(map) {
   div.style.position = "absolute";
   div.style.padding = "0px";
   div.style.cursor = 'pointer';
+  div.style.fontSize = "0px";
   div.title = me.title_;
   var img = document.createElement("img");
   img.src = me.image_;
