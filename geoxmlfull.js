@@ -418,19 +418,20 @@ GeoXml.getDescription = function(node){
    var sub=""; 
    var n = 0;
    var cn; 
-    if(document.all) {
-	for(;n<node.childNodes.length;n++){
-	 	cn = node.childNodes.item(n);
-	     	sub += cn.xml; 
-		}
-	}
-     else {  
-	var serializer = new XMLSerializer();
-	for(;n<node.childNodes.length;n++){
-	 	cn = serializer.serializeToString(node.childNodes.item(n));
+ 
+    if(typeof XMLSerializer != "undefined"){  
+		var serializer = new XMLSerializer();
+		for(;n<node.childNodes.length;n++){
+			cn = serializer.serializeToString(node.childNodes.item(n));
 	     	sub += cn; 
+			}
 		}
-	}
+	else {
+		for(;n<node.childNodes.length;n++){
+			cn = node.childNodes.item(n);
+				sub += cn.xml; 
+			}
+		}
     var s = sub.replace("<![CDATA[","");
     var u = s.replace("]]>","");
     u = u.replace(/\&amp;/g,"&");
@@ -2560,7 +2561,9 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
     var shadow;
     var idx;
     var root = xmlDoc.documentElement;
-    if(!root){ alert("No document found"); return 0; }
+    if(!root){  
+		return 0; // makes failure quiet
+		}
     var placemarks = [];
     var name;
     var pname;
