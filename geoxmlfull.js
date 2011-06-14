@@ -1851,6 +1851,8 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
                     poly_count++; processme = true; break;
                 case "styleurl":
                     styleid = nv;
+					var currstyle = style;
+					style = this.styles[styleid];
                     break;
                 case "stylemap":
                     var found = false;
@@ -1860,7 +1862,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
                         for (k = 0; (k < pair.childNodes.length && !found); k++) {
                             var pn = pair.childNodes[k].nodeName;
                             if (pn == "Style") {
-                                style = this.handleStyle(pair.childNodes[k]);
+                                style = this.handleStyle(pair.childNodes[k],null,style);
                                 found = true;
                             }
                         }
@@ -1869,7 +1871,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
                 case "Style":
                 case "style":
                     styleid = null;
-                    style = this.handleStyle(mark.childNodes.item(ln));
+                    style = this.handleStyle(mark.childNodes.item(ln),null,style);
                     break;
             }
             if (processme) {
@@ -1894,9 +1896,6 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
 
         if (fullstyle) {
             style = fullstyle;
-        }
-        if (styleid) {
-            style = this.styles[styleid];
         }
 
         if (typeof desc == "undefined" || !desc || this.opts.makedescription) {
@@ -2074,14 +2073,15 @@ GeoXml.prototype.makeIcon = function(tempstyle, href){
 		}
 	return tempstyle;
 	};
-GeoXml.prototype.handleStyle = function(style,sid){
+GeoXml.prototype.handleStyle = function(style,sid,currstyle){
       var icons=style.getElementsByTagName("Icon");
       var tempstyle,opacity;
       var aa,bb,gg,rr;
       var fill,href,color,colormode, outline;
+	  tempstyle = currstyle;
       if (icons.length > 0) {
         href=GXml.value(icons[0].getElementsByTagName("href")[0]);
-	tempstyle = this.makeIcon(tempstyle,href);
+		tempstyle = this.makeIcon(tempstyle,href);
       	}
       // is it a LineStyle ?
       var linestyles=style.getElementsByTagName("LineStyle");
@@ -2608,9 +2608,9 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
 	}
     else {
 
-   if(basename == "kml") {	
+	if(basename == "kml") {	
         styles = root.getElementsByTagName("Style"); 
-   	for (i = 0; i <styles.length; i++) {
+		for (i = 0; i <styles.length; i++) {
     		sid= styles[i].getAttribute("id");
       		if(sid){ 
      	   		that.handleStyle(styles[i],sid);
