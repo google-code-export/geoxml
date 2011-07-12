@@ -18,6 +18,93 @@ function KMLObj(title,desc,op,fid) {
 function Lance$(mid){ return document.getElementById(mid);}
 var topwin = self;
 
+function DynamicMarkerLayer(myvar, map, url, tilezoomlevel, opts){
+		this.myvar = myvar;
+		this.opts = opts || {};
+		this.map = map;
+		this.isTiled = true;
+		this.baseUrl = url;
+		this.geoxmls = [];
+		this.buffer = 0;
+		this.tiledZoom = tilezoomlevel;
+		var div = document.createElement("div");
+		div.style.border = ""; 
+		div.style.position = "absolute";
+		div.style.padding = "0px";
+		div.style.margin = "0px";
+		div.style.fontSize = "0px";
+		div.zIndex = 1001;
+		this.map.getPane(G_MAP_MARKER_PANE).appendChild(div);
+		this.markerpane = div;
+		}
+		
+DynamicMarkerLayer.prototype.show = function(){
+	var proj = this.map.getCurrentMapType().getProjection();
+	var sw = proj.fromLatLngToPixel(this.map.getBounds().getSouthWest(), this.tiledZoom);
+	var ne = proj.fromLatLngToPixel(this.map.getBounds().getNorthEast(), this.tiledZoom);
+	var startcol = parseInt(sw.x / 256 - this.buffer);
+	var endcol = parseInt(ne.x / 256 + this.buffer);
+	var endrow = parseInt(sw.y / 256 + this.buffer);
+	var startrow = parseInt(ne.y / 256 - this.buffer); 
+	this.markerpane.style.visibility = "visible";
+	for(var y = startcol;y <= endcol;y++){
+		var col = this.geoxmls[y];
+		for(var x = startrow;x <= (endrow);x++){
+			if(col  && col[x]) {
+				this.geoxmls[y][x].allRemoved = false;
+				this.geoxmls[y][x].show();
+				}
+			else {
+				if(this.geoxmls[y]){}
+				else {
+					this.geoxmls[y] = [];
+					}
+				var name = this.myvar +".geoxmls["+y+"]["+x+"]";
+				var div = document.createElement("div");
+				div.id = this.myvar+"_"+x+"_"+y;
+				div.style.border = ""; 
+				div.style.position = "absolute";
+				div.style.padding = "0px";
+				div.style.margin = "0px";
+				div.style.fontSize = "0px";
+				div.zIndex = 1001;
+				var pane = this.markerpane.appendChild(div);
+				var opts = this.opts;
+				opts.markerpane = pane;
+				opts.nozoom = true;
+				this.geoxmls[y][x] = new GeoXml(name ,this.map,this.baseUrl+x+"/"+y+".kml",opts );
+				this.geoxmls[y][x].allRemoved = false;
+				this.geoxmls[y][x].parse();
+				}
+			}
+		}
+	};
+				
+			
+DynamicMarkerLayer.prototype.hide = function(){
+	this.markerpane.style.visibility = "hidden";
+	var proj = this.map.getCurrentMapType().getProjection();
+	var sw = proj.fromLatLngToPixel(this.map.getBounds().getSouthWest(), this.tiledZoom);
+	var ne = proj.fromLatLngToPixel(this.map.getBounds().getNorthEast(), this.tiledZoom);
+	var startcol = parseInt(sw.x / 256 - this.buffer);
+	var endcol = parseInt(ne.x / 256 + this.buffer);
+	var endrow = parseInt(sw.y / 256 + this.buffer);
+	var startrow = parseInt(ne.y / 256 - this.buffer); 
+	for(var y = startcol;y <= endcol;y++){
+		var col = this.geoxmls[y];
+		if(col) {
+			for(var x = startrow;x <= (endrow);x++){
+				if(col[x]){
+					if(this.geoxmls[y][x].polylines.length > 0 || this.geoxmls[y][x].polygons.length > 0){
+						this.geoxmls[y][x].hide();
+						}
+					this.geoxmls[y][x].allRemoved = true;
+					}
+				}
+			}
+		}
+	};
+		
 function GeoXml(myvar, map, url, opts) {
   // store the parameters
   this.myvar = myvar;
@@ -30,7 +117,7 @@ function GeoXml(myvar, map, url, opts) {
   } else {
     this.urls = url;
   }
-  this.zoomHere = 15; 
+  
   this.mb.style = this.opts.messagestyle || { backgroundColor: "silver"};
   this.alwayspop = this.opts.alwaysinfopop || false;
   this.quiet = this.opts.quiet || false;
@@ -53,30 +140,12 @@ function GeoXml(myvar, map, url, opts) {
   this.latestsidebar = "";
   this.forcefoldersopen = false;
   if(typeof this.opts.allfoldersopen !="undefined"){ this.forcefoldersopen = this.opts.allfoldersopen;}
-  
-  var div2 = document.createElement("div");
-  div2.style.border = ""; 
-  div2.style.position = "absolute";
-  div2.style.padding = "0px";
-  div2.style.margin = "0px";
-  div2.style.fontSize = "0px";
-  div2.zIndex = 1001;
-  var c = map.getContainer();
-  c.style.fontSize = "0px";
-  var div = document.createElement("div");
-  div.style.border = ""; 
-  div.style.position = "absolute";
-  div.style.padding = "0px";
-  div.style.margin = "0px";
-  div.style.fontSize = "0px";
-  div.zIndex = 1001;
-  map.getPane(G_MAP_MARKER_PANE).appendChild(div);
-  
-  map.getPane(G_MAP_OVERLAY_LAYER_PANE).appendChild(div2);
-  this.pane = div2;
-  this.markerpane = div ;
-
+  this.dohilite = false;
+  if(typeof this.opts.dohilite != "undefined" && this.opts.dohilite){
+	this.dohilite = true;
+	}
   this.clickablepolys = true;
+  this.zoomHere = 15; 
   if(typeof this.opts.zoomhere == "number" ){
 	 this.zoomHere = this.opts.zoomhere;
  	 }
@@ -103,16 +172,35 @@ function GeoXml(myvar, map, url, opts) {
 	 this.sidebariconheight = this.opts.sidebariconheight;
   	}
   this.sidebarsnippet = false;
- if(typeof this.opts.sidebarsnippet == "boolean"){
+  if(typeof this.opts.sidebarsnippet == "boolean"){
 	this.sidebarsnippet = this.opts.sidebarsnippet;
   	}
   this.hideall = false;
+  if(this.opts.hideall){ this.hideall = this.opts.hideall; }
+
+  if(this.opts.markerpane && typeof this.opts.markerpane != "undefined"){
+	this.markerpane = this.opts.markerpane;
+	}
+  else {
+	var div = document.createElement("div");
+	div.style.border = ""; 
+	div.style.position = "absolute";
+	div.style.padding = "0px";
+	div.style.margin = "0px";
+	div.style.fontSize = "0px";
+	div.zIndex = 1001;
+	map.getPane(G_MAP_MARKER_PANE).appendChild(div);
+	this.markerpane = div;
+	}
+
+  var c = map.getContainer();
+  c.style.fontSize = "0px";
+  
   if(typeof proxy!="undefined"){ this.proxy = proxy; }
   if(!this.proxy && typeof getcapproxy !="undefined") { 
 	  	if(fixUrlEnd){ getcapproxy = fixUrlEnd(getcapproxy);  } 
  		}
-  if(this.opts.hideall){ this.hideall = this.opts.hideall; }
-  this.publishdirectory = "http://www.dyasdesigns.com/tntmap/";
+  this.publishdirectory = "http://www.microimages.com/ogc/tntmap/";
   topwin = top;
   try {topname=top.title;}
   	catch(err){topwin=self;}
@@ -210,7 +298,7 @@ GeoXml.prototype.clear = function(idx) {
   	this.overlayman.folderhtml.push([]);
   	this.overlayman.folderhtmlast.push(0);
 	this.overlayman.byname = [];
-    	this.overlayman.byid = [];
+    this.overlayman.byid = [];
   	this.overlayman.folderBounds.push(new GLatLngBounds()); 
  	this.wmscount = 0;
 	};
@@ -227,14 +315,14 @@ GeoXml.prototype.createMarkerJSON = function(item,idx) {
 	if(item.shadow){ style.shadow = item.shadow; }
 		else{ style.shadow = null; }
 	if (!!that.opts.createmarker) {
-          	that.opts.createmarker(point, item.title, unescape(item.description), null, idx, style, item.visibility, item.id, item.snip);
+          	that.opts.createmarker(point, item.title, unescape(item.description), null, idx, style, item.visibility, item.id, item.href, item.snip);
         	} 
 	else {
-          	that.createMarker(point, item.title, unescape(item.description), null, idx, style, item.visibility, item.id, item.snip);
+          	that.createMarker(point, item.title, unescape(item.description), null, idx, style, item.visibility, item.id, item.href, item.snip);
         	}
 	};
 
-	GeoXml.prototype.createMarker = function(point, name, desc, style, idx, instyle, visible, kml_id, markerurl,snip) {
+GeoXml.prototype.createMarker = function(point, name, desc, style, idx, instyle, visible, kml_id, markerurl,snip) {
 	    var myvar = this.myvar;
 	    var icon;
 	    var bicon = new GIcon();
@@ -290,6 +378,7 @@ GeoXml.prototype.createMarkerJSON = function(item,idx) {
 	            }
 	        }
 	        else {
+			
 	            if (instyle.href) { href = instyle.href; }
 	            if (instyle.shadow) { shadow = instyle.shadow; }
 	        }
@@ -308,9 +397,21 @@ GeoXml.prototype.createMarkerJSON = function(item,idx) {
 	    markeroptions.icon = icon;
 	    markeroptions.title = name;
 		markeroptions.image = icon.image;
+		var start = icon.image.substring(0,4); //handle relative urls
+		if(start.match(/^http/i)) {
+			}
+		else {
+			if(typeof this.url == "string"){
+				var slash = this.url.lastIndexOf("/");
+				if(slash != -1){
+					markeroptions.image = this.url.substring(0,slash)+"/" + icon.image;
+					}
+				}
+			}
+		
 		markeroptions.height = icon.iconSize.height;
 		markeroptions.width = icon.iconSize.width;
-		//alert(icon.iconAnchor);
+	 
 		markeroptions.left =  icon.iconAnchor.x;
 		markeroptions.top =  icon.iconAnchor.y + 1;
 		markeroptions.pane = this.markerpane;
@@ -336,7 +437,10 @@ GeoXml.prototype.createMarkerJSON = function(item,idx) {
 	    if(this.maxiwwidth && awidth > this.maxiwwidth ){
 			awidth = this.maxiwwidth;
 	    	}
-	    html = "<div style = 'width:" + awidth + "px'>" + "<h1 " + this.titlestyle + ">" + name + "</h1>" + "<div " + this.descstyle + ">" + desc + "</div>";
+	    html = "<div style = 'width:" + awidth + "px'>" + "<h1 " + this.titlestyle + ">" + name + "</h1>";
+		if(name != desc){
+			html +=  "<div " + this.descstyle + ">" + desc + "</div>";
+			}
 	    var html1;
 	    if (this.opts.directions) {
 	        html1 = html + '<div ' + this.directionstyle + '>'
@@ -383,8 +487,13 @@ GeoXml.prototype.createMarkerJSON = function(item,idx) {
 			if(markerurl!=''){
 				m.url = markerurl;
 	    	  		GEvent.addListener(m, "click", function() {
+					window.open(m.url,'_blank');
+					try {
 					eval(myvar + ".lastmarker = m");
-	            			window.open(m.url,'_blank');
+					}
+					catch(err){
+					}
+	            			
 	        	});
 		   }
 	    	}
@@ -392,8 +501,11 @@ GeoXml.prototype.createMarkerJSON = function(item,idx) {
 	    else {
 	    if (this.clickablemarkers) {
 	        GEvent.addListener(m, "click", function() {
-	            eval(myvar + ".lastmarker = m");
-	            m.openInfoWindowHtml(html1 + "</div>", iwoptions);
+			  m.openInfoWindowHtml(html1 + "</div>", iwoptions);
+	          try{  
+			  eval(myvar + ".lastmarker = m"); 
+			  } catch(err){
+			  }
 	        });
 	    }
 	    }
@@ -401,35 +513,40 @@ GeoXml.prototype.createMarkerJSON = function(item,idx) {
 	        m.mess = html1 + "</div>";
 	        m.geoxml = this;
 	        GEvent.addListener(m, "mouseover", function(point) { if (!point) { point = m.getPoint(); } m.geoxml.mb.showMess(m.mess, 5000); });
-	    }
+			}
 	    var nhtml = "";
 	    var parm;
 	    if (this.opts.sidebarid) {
 	        var folderid = this.myvar + "_folder" + idx;
 	        var n = this.overlayman.markers.length;
 	        var blob = "&nbsp;<img style=\"vertical-align:text-top;padding:0;margin:0\" height=\""+this.sidebariconheight+"\" border=\"0\" src=\"" + href + "\">&nbsp;";
-		if(this.sidebarsnippet){
-		var desc2 = GeoXml.stripHTML(desc);
-		desc2 = desc2.substring(0,40);}
-		else {desc2 = '';	}
+			if(this.sidebarsnippet){
+			var desc2 = GeoXml.stripHTML(desc);
+			desc2 = desc2.substring(0,40);}
+			else {desc2 = '';	}
 	        parm = this.myvar + "$$$" + name + "$$$marker$$$" + n + "$$$" + blob + "$$$" + visible + "$$$null$$$" + desc2;
 	        m.sidebarid = this.myvar + "sb" + n;
 	        m.hilite = this.hilite;
 	        m.geoxml = this;
-	        GEvent.addListener(m, "mouseover", function() {
-	            var bar = Lance$(this.sidebarid);
-	            if (bar && typeof bar != "undefined") {
-	                bar.style.backgroundColor = this.hilite.color;
-	                bar.style.color = this.hilite.textcolor;
-	            }
-	        });
-	        GEvent.addListener(m, "mouseout", function() {
-	            var bar = Lance$(this.sidebarid);
-	            if (bar && typeof bar != "undefined") {
-	                bar.style.background = "none";
-	                bar.style.color = "";
-	            }
-	        });
+			m.onOver = function() {
+					if(this.geoxml.dohilite){
+						var bar = Lance$(this.sidebarid);
+						if (bar && typeof bar != "undefined") {
+							bar.style.backgroundColor = this.hilite.color;
+							bar.style.color = this.hilite.textcolor;
+							}
+						}
+					};
+			m.onOut = function() {
+				if(this.geoxml.dohilite){
+					var bar = Lance$(this.sidebarid);
+					if (bar && typeof bar != "undefined") {
+						bar.style.background = "none";
+						bar.style.color = "";
+					}
+				}
+			}
+		
 
 	    }
 
@@ -447,19 +564,19 @@ GeoXml.getDescription = function(node){
    var sub=""; 
    var n = 0;
    var cn; 
-    if(document.all) {
-	for(;n<node.childNodes.length;n++){
-	 	cn = node.childNodes.item(n);
-	     	sub += cn.xml; 
-		}
-	}
-     else {  
+	if(typeof XMLSerializer != "undefined") {
 	var serializer = new XMLSerializer();
 	for(;n<node.childNodes.length;n++){
 	 	cn = serializer.serializeToString(node.childNodes.item(n));
 	     	sub += cn; 
 		}
 	}
+	else {
+		for(;n<node.childNodes.length;n++){
+			cn = node.childNodes.item(n);
+				sub += cn.xml; 
+			}
+		}
     var s = sub.replace("<![CDATA[","");
     var u = s.replace("]]>","");
     u = u.replace(/\&amp;/g,"&");
@@ -549,38 +666,41 @@ GeoXml.prototype.processLine = function (pnum, lnum, idx){
 	p.idx = pnum;
   	p.onOver = function(){
 		var pline = this.geoxml.polylines[this.idx];
-		if(this.hidden!=true){
-			for(var l=0;l<pline.lineidx.length;l++){
-				var mark = this.geoxml.overlayman.markers[pline.lineidx[l]];
-				mark.realColor = mark.strokeColor; 
-				mark.realOpacity = mark.fillOpacity;
-				//mark.color = this.hilite.color;
-				mark.setStrokeStyle({color:this.hilite.color});
-				mark.redraw(true);
+		if(this.geoxml.dohilite){
+			if(this.hidden!=true){
+				for(var l=0;l<pline.lineidx.length;l++){
+					var mark = this.geoxml.overlayman.markers[pline.lineidx[l]];
+					mark.realColor = mark.strokeColor; 
+					mark.realOpacity = mark.fillOpacity;
+					//mark.color = this.hilite.color;
+					mark.setStrokeStyle({color:this.hilite.color});
+					mark.redraw(true);
+					}
 				}
-			}
-		if(this.sidebar){
-			Lance$(this.sidebar).style.backgroundColor = this.hilite.color;
-			Lance$(this.sidebar).style.color = this.hilite.textcolor;
+			if(this.sidebar){
+				Lance$(this.sidebar).style.backgroundColor = this.hilite.color;
+				Lance$(this.sidebar).style.color = this.hilite.textcolor;
+				}
 			}
 		if(this.mess) { this.geoxml.mb.showMess(this.mess,5000); } else { this.title = "Click for more information about "+this.mytitle; }
 		};
   	p.onOut = function(){ 
-
-		var pline = this.geoxml.polylines[this.idx];
-		if(this.hidden!=true){
-			for(var l=0; l < pline.lineidx.length; l++){
-			var mark = this.geoxml.overlayman.markers[pline.lineidx[l]];
-		 	mark.setStrokeStyle({color:this.realColor,opacity:this.realOpacity});
-			mark.redraw(true);
-			}
+		if(this.geoxml.dohilite){
+			var pline = this.geoxml.polylines[this.idx];
+			if(this.hidden!=true){
+				for(var l=0; l < pline.lineidx.length; l++){
+				var mark = this.geoxml.overlayman.markers[pline.lineidx[l]];
+				mark.setStrokeStyle({color:this.realColor,opacity:this.realOpacity});
+				mark.redraw(true);
+				}
+				}
+			
+			if(this.sidebar){
+				Lance$(this.sidebar).style.background = "none";
+				Lance$(this.sidebar).style.color = "";
+				}
 			}
 		this.geoxml.mb.hideMess();
-		if(this.sidebar){
-			Lance$(this.sidebar).style.background = "none";
-			Lance$(this.sidebar).style.color = "";
-
-			}
 		};
 
  	GEvent.addListener(p,"mouseout",p.onOut);
@@ -660,7 +780,10 @@ GeoXml.prototype.finishPolygonJSON = function(op,idx,updatebound,lastpoly) {
   var desc = unescape(op.description);
   op.opacity = op.fillOpacity;
   var p = new GPolygon.fromEncoded(op);
-  var html = "<div style='font-weight: bold; font-size: medium; margin-bottom: 0em;'>"+op.name+"</div>"+"<div style='font-family: Arial, sans-serif;font-size: small;width:"+this.iwwidth+"px'>"+desc+"</div>";
+  var html = "<div style='font-family: Arial, sans-serif; font-weight: bold; font-size: medium; margin-bottom: 0em;'>"+op.name+"</div>";
+  if(desc != op.name){
+  html += "<div style='font-family: Arial, sans-serif;font-size: small;width:"+this.iwwidth+"px'>"+desc+"</div>";
+  }
  var newgeom = (lastpoly != "p_"+op.name);
   if(newgeom && this.opts.sidebarid){
 	this.latestsidebar = that.myvar +"sb"+  this.overlayman.markers.length;
@@ -678,7 +801,7 @@ GeoXml.prototype.finishPolygonJSON = function(op,idx,updatebound,lastpoly) {
   p.strokeOpacity = op.polylines[0].opacity;
   p.fillOpacity = op.opacity;
   p.fillColor = op.color;
-  if(!op.fill){ p.fillOpacity = 0.0; }
+ // if(!op.fill){ p.fillOpacity = 0.0; }
   if(that.domouseover){
 	p.mess = html;
 	}
@@ -698,22 +821,24 @@ GeoXml.prototype.finishPolygonJSON = function(op,idx,updatebound,lastpoly) {
   p.geomindex = len;
   p.sidebarid = this.latestsidebar;
   p.onOver = function(){ 
-		if(this.sidebarid){
-			var bar = Lance$(this.sidebarid);
-			if(!!bar){
-				bar.style.backgroundColor = this.hilite.color;
-				bar.style.color = this.hilite.textcolor;
+		if(this.geoxml.dohilite){
+			if(this.sidebarid){
+				var bar = Lance$(this.sidebarid);
+				if(!!bar){
+					bar.style.backgroundColor = this.hilite.color;
+					bar.style.color = this.hilite.textcolor;
+					}
 				}
-			}
-	 	if(this.geoxml.clickablepolys){
-			var poly = this.geoxml.polygons[this.polyindex];
-			if(poly && this.hidden!=true) {
-			    for (var pg =0;pg < poly.length;pg++) {
-				var mark = this.geoxml.overlayman.markers[poly[pg]];
-				mark.realColor= mark.fillColor;
-				mark.realOpacity = mark.fillOpacity;
-				mark.setFillStyle({color:this.hilite.color,opacity:this.hilite.opacity});
-				mark.redraw(true);
+			if(this.geoxml.clickablepolys){
+				var poly = this.geoxml.polygons[this.polyindex];
+				if(poly && this.hidden!=true) {
+					for (var pg =0;pg < poly.length;pg++) {
+					var mark = this.geoxml.overlayman.markers[poly[pg]];
+					mark.realColor= mark.fillColor;
+					mark.realOpacity = mark.fillOpacity;
+					mark.setFillStyle({color:this.hilite.color,opacity:this.hilite.opacity});
+					mark.redraw(true);
+					}
 				}
 			}
 		}
@@ -722,6 +847,7 @@ GeoXml.prototype.finishPolygonJSON = function(op,idx,updatebound,lastpoly) {
 
 		 
   p.onOut = function(){ 
+	if(this.geoxml.dohilite){
 		if(this.sidebarid){
 			var bar = Lance$(this.sidebarid);
 			if(!!bar){
@@ -740,7 +866,9 @@ GeoXml.prototype.finishPolygonJSON = function(op,idx,updatebound,lastpoly) {
 				mark.redraw(true);
 				}
 			}
-		};
+		}
+	if(this.mess){ this.geoxml.mb.hideMess(); }
+	};
  
 GEvent.addListener(p,"mouseout",p.onOut);
 GEvent.addListener(p,"mouseover",p.onOver);
@@ -809,11 +937,11 @@ GeoXml.prototype.finishLineJSON = function(po, idx, lastlinename){
 	else { m = new GPolyline.fromEncoded(po); }
 	m.mytitle = po.name;
 	m.title = po.name;
-        m.geoxml = this;
-        m.strokeColor = po.color;
-        m.strokeWeight = po.weight;
+	m.geoxml = this;
+	m.strokeColor = po.color;
+	m.strokeWeight = po.weight;
 	m.strokeOpacity = po.opacity;
-        m.hilite = this.hilite;
+    m.hilite = this.hilite;
 	var n = that.overlayman.markers.length;
 	var lineisnew = false;
 	var pnum;
@@ -834,6 +962,7 @@ GeoXml.prototype.finishLineJSON = function(po, idx, lastlinename){
 		m.sidebarid = that.latestsidebar;
 		}
   	m.onOver = function(){
+		if(this.geoxml.dohilite){
 			if(!!this.sidebarid){
 				var bar = Lance$(this.sidebarid);	
 				if(bar && typeof bar !="undefined")
@@ -841,12 +970,15 @@ GeoXml.prototype.finishLineJSON = function(po, idx, lastlinename){
 				}
 			this.realColor = this.strokeColor;
 			if(m.hidden!=true){
-				if(m && typeof m!="undefined"){ m.setStrokeStyle({color:this.hilite.color}); }
+				if(m && typeof m!="undefined"){ 
+				m.setStrokeStyle({color:this.hilite.color}); }
 				this.redraw(true);
 				}
-			if(this.mess) { this.geoxml.mb.showMess(this.mess,5000); } else { this.title = "Click for more information about "+this.mytitle; }
-			};
+			}
+		if(this.mess) { this.geoxml.mb.showMess(this.mess,5000); } else { this.title = "Click for more information about "+this.mytitle; }
+		};
   	m.onOut = function(){ 	
+		if(this.geoxml.dohilite){
 			if(!!this.sidebarid){
 				var bar = Lance$(this.sidebarid);	
 				if(bar && typeof bar !="undefined"){bar.style.background = "none"; }
@@ -855,8 +987,9 @@ GeoXml.prototype.finishLineJSON = function(po, idx, lastlinename){
 				if(m && typeof m!="undefined"){ m.setStrokeStyle({color:this.realColor}); }
 				this.redraw(true);
 				}
-			if(this.mess){ this.geoxml.mb.hideMess(); }
-			};
+			}
+		if(this.mess){ this.geoxml.mb.hideMess(); }
+		};
  
 	GEvent.addListener(m,"mouseover",m.onOver);
 	GEvent.addListener(m,"mouseover",m.onOut);
@@ -873,8 +1006,10 @@ GeoXml.prototype.finishLineJSON = function(po, idx, lastlinename){
 		awidth = po.name.length * 12;
  		}
 
-	var html = "<div style='font-weight: bold; font-size: medium; margin-bottom: 0em;'>"+po.name;
-  	html += "</div><div style='font-family: Arial, sans-serif;font-size: small;width:"+awidth+"px'>"+desc+"</div>";
+	var html = "<div style='font-family: Arial, sans-serif; font-weight: bold; font-size: medium; margin-bottom: 0em;'>"+po.name +"</div>";
+	if (po.name != desc) {
+		html += "<div style='font-family: Arial, sans-serif;font-size: small;width:"+awidth+"px'>"+desc+"</div>";
+		}
 	m.map = this.map;
 	if(this.clickablelines){
   		GEvent.addListener(m,"click", function(point) {if(!point){ point=m.getPoint(); } this.map.openInfoWindowHtml(point,html,that.opts.iwoptions);} );
@@ -1020,14 +1155,15 @@ GeoXml.prototype.recurseJSON = function (doc, title, desc, sbid, depth){
 		that.jsonmarks.push(po);
 		desc = unescape(po.description);
 		m = null;
+		var imgtag 
  		if(that.opts.preloadHTML && desc && desc.match(/<(\s)*img/i)){
 			var preload = document.createElement("span");
-     			preload.style.visibility = "visible";
+     		preload.style.visibility = "visible";
 			preload.style.position = "absolute";
 			preload.style.left = "-1200px";
 			preload.style.top = "-1200px";
 			preload.style.zIndex = this.overlayman.markers.length; 
-     			document.body.appendChild(preload);
+     		document.body.appendChild(preload);
 			preload.innerHTML = desc;
 			}	 
 		}	
@@ -1157,19 +1293,21 @@ GeoXml.prototype.hide = function(){
 		}
 	else {
 	//does not support matching sidebar entry toggling yet
-		this.markerpane.style.visibility = "hidden";
+		this.markerpane.style.display = "none";
+	//	alert("hiding marker pane");
 		}
 	};
 
 GeoXml.prototype.show = function(){
 	if(this.polylines.length > 0 || this.polygons.length > 0){
-		this.contentToggle(1,false);
+		this.contentToggle(1,true);
 		this.overlayman.currentZoomLevel = -1;
 		Clusterer.Display(this.overlayman);
 		}
 	else {
 	//does not support matching sidebar entry toggling yet
-		this.markerpane.style.visibility = "visible";
+		//alert("showing marker pane");
+		this.markerpane.style.display = "";
 		}
 	};
 
@@ -1531,8 +1669,8 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
 	var p;
 	var points = [];
 	var cc, l;
-        var pbounds = new GLatLngBounds();
-        var coordset=mark.getElementsByTagName("coordinates");
+    var pbounds = new GLatLngBounds();
+    var coordset=mark.getElementsByTagName("coordinates");
 	if(coordset.length <1){
 	    coordset=mark.getElementsByTagName("gml:coordinates");
 	    }
@@ -1608,40 +1746,43 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
 		}
     
      var lines = [];
+	 var polygonlines = [];
      var point;
      var skiprender;
      var bits;
+	  
      for(var c=0;c<coordset.length;c++){
-     skiprender = false;
-     if(coordset[c].parentNode && (coordset[c].parentNode.nodeName == "gml:Box" || coordset[c].parentNode.nodeName == "gml:Envelope" )){
-	skiprender = true;
-	} 
-
-      coords = GXml.value(coordset[c]);
-      coords += " ";
-      coords=coords.replace(/\s+/g," "); 
-      // tidy the whitespace
-      coords=coords.replace(/^ /,"");    
-      // remove possible leading whitespace
-      coords=coords.replace(/, /,",");   
-      // tidy the commas
-      var path = coords.split(" ");
-      // Is this a polyline/polygon?
-      if (path.length == 1 || path[1] =="") {
-        bits = path[0].split(",");
-        point = new GLatLng(parseFloat(bits[1])/trans.ys-trans.y,parseFloat(bits[0])/trans.xs-trans.x);
-        that.bounds.extend(point);
-        // Does the user have their own createmarker function?
-	if(!skiprender){
-		if(typeof name == "undefined"){ name= that.unnamedplace; }
-        	if (!!that.opts.createmarker) {
-          		that.opts.createmarker(point, name, desc, styleid, idx, null, visible);
-        		} 
-		else {
-          		that.createMarker(point, name, desc, styleid, idx, null, visible);
-        		}
-		}
-	}
+        skiprender = false;
+        if (coordset[c].parentNode && (coordset[c].parentNode.nodeName == "gml:Box" || coordset[c].parentNode.nodeName == "gml:Envelope")) {
+            skiprender = true;
+            }
+       
+       coords = GXml.value(coordset[c]);
+       coords += " ";
+       coords=coords.replace(/\s+/g," "); 
+          // tidy the whitespace
+       coords=coords.replace(/^ /,"");    
+          // remove possible leading whitespace
+       coords=coords.replace(/, /,",");   
+          // tidy the commas
+       var path = coords.split(" ");
+          // Is this a polyline/polygon?
+          
+     if (path.length == 1 || path[1] =="") {
+            bits = path[0].split(",");
+            point = new GLatLng(parseFloat(bits[1])/trans.ys-trans.y,parseFloat(bits[0])/trans.xs-trans.x);
+            that.bounds.extend(point);
+            // Does the user have their own createmarker function?
+	    if(!skiprender){
+		    if(typeof name == "undefined"){ name= that.unnamedplace; }
+        	    if (!!that.opts.createmarker) {
+          		    that.opts.createmarker(point, name, desc, styleid, idx, null, visible);
+        		    } 
+		    else {
+          		    that.createMarker(point, name, desc, styleid, idx, null, visible);
+        		    }
+		    }
+	    }
       else {
         // Build the list of points
        	for (p=0; p<path.length-1; p++) {
@@ -1657,7 +1798,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
 	}
  	if(!lines || lines.length <1) { return; }
         var linestring=mark.getElementsByTagName("LineString");
-	if(linestring.length <1){
+	    if(linestring.length <1){
 		linestring=mark.getElementsByTagName("gml:LineString");
 		}
         if (linestring.length || line_count>0) {
@@ -1707,8 +1848,31 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
           }
       }  
     };
+	
 
-    GeoXml.prototype.handlePlacemark = function(mark, idx, depth, fullstyle) {
+GeoXml.prototype.handlePlacemark = function(mark, idx, depth, fullstyle) {
+		var mgeoms = mark.getElementsByTagName("MultiGeometry");
+		if(mgeoms.length < 1){
+			this.handlePlacemarkGeometry(mark,mark,idx,depth,fullstyle);
+			}
+		else {
+			var p;
+			var pts = mgeoms[0].getElementsByTagName("Point");
+			for (p=0;p<pts.length; p++){
+				this.handlePlacemarkGeometry(mark,pts[p],idx,depth,fullstyle);
+				}
+			var lines = mgeoms[0].getElementsByTagName("LineString");
+			for (p=0;p<lines.length; p++){
+				this.handlePlacemarkGeometry(mark,lines[p],idx,depth,fullstyle);
+				}
+			var polygons = mgeoms[0].getElementsByTagName("Polygon");
+			for (p=0;p<polygons.length; p++){
+				this.handlePlacemarkGeometry(mark,polygons[p],idx,depth,fullstyle);
+				}
+			}		
+		};
+	
+GeoXml.prototype.handlePlacemarkGeometry = function(mark, geom, idx, depth, fullstyle) {
         var that = this;
         var desc, title, name, style;
         title = "";
@@ -1740,24 +1904,23 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
         var coords = "";
         var markerurl = "";
         var snippet = "";
-
         l = mark.getAttribute("lat");
         if (typeof l != "undefined") { lat = l; }
         l = mark.getAttribute("lon");
         if (typeof l != "undefined") {
             newcoords = true;
             lon = l;
-        }
+			}
         l = 0;
-        var coordset = mark.getElementsByTagName("coordinates");
+        var coordset = geom.getElementsByTagName("coordinates");
         if (coordset.length < 1) {
-            coordset = mark.getElementsByTagName("gml:coordinates");
-        }
+            coordset = geom.getElementsByTagName("gml:coordinates");
+			}
         if (coordset.length < 1) {
             coordset = [];
-            var poslist = mark.getElementsByTagName("gml:posList");
+            var poslist = geom.getElementsByTagName("gml:posList");
             if (!poslist.length) {
-                poslist = mark.getElementsByTagName("posList");
+                poslist = geom.getElementsByTagName("posList");
             }
             for (l = 0; l < poslist.length; l++) {
                 coords = " ";
@@ -1791,8 +1954,8 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
                 }
             }
 
-            pos = mark.getElementsByTagName("gml:pos");
-            if (pos.length < 1) { pos = mark.getElementsByTagName("gml:pos"); }
+            pos = geom.getElementsByTagName("gml:pos");
+            if (pos.length < 1) { pos = geom.getElementsByTagName("gml:pos"); }
             if (pos.length) {
                 for (p = 0; p < pos.length; p++) {
                     nv = GXml.value(pos.item(p)) + " ";
@@ -1833,6 +1996,35 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
                 case "description":
                     desc = GeoXml.getDescription(mark.childNodes.item(ln));
                     if (!desc) { desc = nv; }
+					var srcs = desc.match(/src=\"(.*)\"/i);
+			//alert("matching srcs : "+srcs.index + " "+srcs.input);
+					if(srcs){
+						for (var sr=1;sr<srcs.length;sr++){
+							if(srcs[sr].match(/^http/)){
+								}
+							else {
+								if(this.url.match(/^http/)){
+									//remove all but last slash of url
+									var slash = this.url.lastIndexOf("/");
+									if(slash != -1){
+										newsrc = this.url.substring(0,slash)+"/" + srcs[sr];
+										desc = desc.replace(srcs[sr],newsrc);
+										}
+									alert(desc);
+									}
+								else {
+									//compute directory of html add relative path of kml and relative path of src.
+									var slash = this.url.lastIndexOf("/");
+									if(slash != -1){
+										newsrc = this.url.substring(0,slash)+"/" + srcs[sr];
+										desc = desc.replace(srcs[sr],newsrc);
+										}
+									//var path = window.location.href+" "+this.url+" "+srcs[sr];
+									//alert(path +"\n"+desc);
+									}
+								}
+							}
+						}
                     if (that.opts.preloadHTML && desc && desc.match(/<(\s)*img/i)) {
                         var preload = document.createElement("span");
                         preload.style.visibility = "visible";
@@ -1842,7 +2034,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
                         preload.style.zIndex = this.overlayman.markers.length;
                         document.body.appendChild(preload);
                         preload.innerHTML = desc;
-                    }
+						}
                     if (desc.match(/^http:\/\//i)) {
                         var flink = desc.split(/(\s)+/);
                         if (flink.length > 1) {
@@ -1893,18 +2085,12 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
                     lon = nv;
                     newcoords = true;
                     break;
-                case "point":
-                    point_count++;
-                    processme = true;
-                    break;
-                case "line":
-                    line_count++; processme = true; break;
                 case "box":
                     box_count++; processme = true; break;
-                case "polygon":
-                    poly_count++; processme = true; break;
                 case "styleurl":
                     styleid = nv;
+					var currstyle = style;
+					style = this.styles[styleid];
                     break;
                 case "stylemap":
                     var found = false;
@@ -1914,7 +2100,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
                         for (k = 0; (k < pair.childNodes.length && !found); k++) {
                             var pn = pair.childNodes[k].nodeName;
                             if (pn == "Style") {
-                                style = this.handleStyle(pair.childNodes[k]);
+                                style = this.handleStyle(pair.childNodes[k],null,style);
                                 found = true;
                             }
                         }
@@ -1923,7 +2109,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
                 case "Style":
                 case "style":
                     styleid = null;
-                    style = this.handleStyle(mark.childNodes.item(ln));
+                    style = this.handleStyle(mark.childNodes.item(ln),null,style);
                     break;
             }
             if (processme) {
@@ -1949,10 +2135,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
         if (fullstyle) {
             style = fullstyle;
         }
-        if (styleid) {
-            style = this.styles[styleid];
-        }
-
+     
         if (typeof desc == "undefined" || !desc || this.opts.makedescription) {
             var dc = that.makeDescription(mark, "");
             desc = "<div id='currentpopup' style='overflow:auto;height:" + this.iwheight + "px' >" + dc.desc + "</div> ";
@@ -1983,7 +2166,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
             var skiprender = false;
             if (coordset[c].parentNode && (coordset[c].parentNode.nodeName.match(/^(gml:Box|gml:Envelope)/i))) {
                 skiprender = true;
-            }
+				}
             coords = GXml.value(coordset[c]);
             coords += " ";
             coords = coords.replace(/(\s)+/g, " ");
@@ -1998,20 +2181,20 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
             // Is this a polyline/polygon?
 
             if (path.length == 1 || path[1] == "") {
-                bits = path[0].split(",");
-                point = new GLatLng(parseFloat(bits[1]), parseFloat(bits[0]));
-                this.overlayman.folderBounds[idx].extend(point);
-                // Does the user have their own createmarker function?
-                if (!skiprender) {
-                    if (typeof name == "undefined") { name = that.unnamedplace; }
-                    if (!!that.opts.createmarker) {
-                        that.opts.createmarker(point, name, desc, styleid, idx, style, visible, kml_id, markerurl, snippet);
-                    }
-                    else {
-                        that.createMarker(point, name, desc, styleid, idx, style, visible, kml_id, markerurl, snippet);
-                    }
-                }
-            }
+					bits = path[0].split(",");
+					point = new GLatLng(parseFloat(bits[1]), parseFloat(bits[0]));
+					this.overlayman.folderBounds[idx].extend(point);
+					// Does the user have their own createmarker function?
+					if (!skiprender) {
+						if (typeof name == "undefined") { name = that.unnamedplace; }
+						if (!!that.opts.createmarker) {
+							that.opts.createmarker(point, name, desc, styleid, idx, style, visible, kml_id, markerurl, snippet);
+						}
+						else {
+							that.createMarker(point, name, desc, styleid, idx, style, visible, kml_id, markerurl, snippet);
+						}
+					}
+				}
             else {
                 // Build the list of points
                 points = [];
@@ -2021,7 +2204,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
                     point = new GLatLng(parseFloat(bits[1]), parseFloat(bits[0]));
                     points.push(point);
                     pbounds.extend(point);
-                }
+					}
                 this.overlayman.folderBounds[idx].extend(pbounds.getSouthWest());
                 this.overlayman.folderBounds[idx].extend(pbounds.getNorthEast());
                 this.bounds.extend(pbounds.getSouthWest());
@@ -2030,11 +2213,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
             }
         }
         if (!lines || lines.length < 1) { return; }
-        var linestring = mark.getElementsByTagName("LineString");
-        if (linestring.length < 1) {
-            linestring = mark.getElementsByTagName("gml:LineString");
-        }
-        if (linestring.length || line_count > 0) {
+        if (coordset[0].parentNode.nodeName.match(/^(LineString)/i)) {
             // its a polyline grab the info from the style
             if (!!style) {
                 width = style.width;
@@ -2053,11 +2232,8 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
                 that.createPolyline(lines, color, width, opacity, pbounds, name, desc, idx, visible, kml_id);
             }
         }
-        var polygons = mark.getElementsByTagName("Polygon");
-        if (polygons.length < 1) {
-            polygons = mark.getElementsByTagName("gml:Polygon");
-        }
-        if (polygons.length || poly_count > 0) {
+	//	alert(coordset[0].parentNode.nodeName);
+        if (coordset[0].parentNode.nodeName.match(/^(LinearRing)/i)) {
             // its a polygon grab the info from the style
             if (!!style) {
                 width = style.width;
@@ -2067,8 +2243,8 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
                 fillcolor = style.fillcolor;
                 fill = style.fill;
                 outline = style.outline;
-            }
-            if (typeof fill == "undefined") { fill = 1; }
+				}	
+            if (typeof fill == "undefined") { fill = 0; }
             if (typeof color == "undefined") { color = this.style.color; }
             if (typeof fillcolor == "undefined") { fillcolor = this.randomColor(); }
             if (typeof name == "undefined") { name = that.unnamedarea; }
@@ -2079,68 +2255,91 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
             }
         }
     };
-
 GeoXml.prototype.makeIcon = function(tempstyle, href){
+	if (!!href) { }
+	else {
+		if(!!tempstyle){
+			if(!!tempstyle.href){
+				href = tempstyle.href; 
+				}
+			}
+		else {
+		//default icon
+			href = "http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png";
+			tempstyle = new GIcon(G_DEFAULT_ICON,href);
+			tempstyle.iconSize = new GSize(16,16);
+			tempstyle.shadowSize = new GSize(16,16);
+			tempstyle.dragCrossAnchor = new GPoint(16,8);
+			tempstyle.iconAnchor = new GPoint(8,16);
+			tempstyle.href = href;
+			}
+		}
 	if (!!href) {
-          if (!!this.opts.baseicon) {
-           tempstyle = new GIcon(this.opts.baseicon,href);
-	   tempstyle.href = href;
-          } else {
-            tempstyle = new GIcon(G_DEFAULT_ICON,href);
-            tempstyle.iconSize = new GSize(32,32);
-            tempstyle.shadowSize = new GSize(59,32);
-            tempstyle.dragCrossAnchor = new GPoint(2,8);
-            tempstyle.iconAnchor = new GPoint(16,32);
-  	    tempstyle.href = href;
-            if (this.opts.printgif) {
-              var bits = href.split("/");
-              var gif = bits[bits.length-1];
-              gif = this.opts.printgifpath + gif.replace(/.png/i,".gif");
-              tempstyle.printImage = gif;
-              tempstyle.mozPrintImage = gif;
-            }
-            if (!!this.opts.noshadow) {
-              tempstyle.shadow="";
-            } else {
-              // Try to guess the shadow image
-              if (href.indexOf("/red.png")>-1 
-               || href.indexOf("/blue.png")>-1 
-               || href.indexOf("/green.png")>-1 
-               || href.indexOf("/yellow.png")>-1 
-               || href.indexOf("/lightblue.png")>-1 
-               || href.indexOf("/purple.png")>-1
+		  if (!!this.opts.baseicon) {
+		   tempstyle = new GIcon(this.opts.baseicon,href);
+		   tempstyle.href = href;
+		  } else {
+			tempstyle = new GIcon(G_DEFAULT_ICON,href);
+			tempstyle.iconSize = new GSize(32,32);
+			tempstyle.shadowSize = new GSize(59,32);
+			tempstyle.dragCrossAnchor = new GPoint(2,8);
+			tempstyle.iconAnchor = new GPoint(16,32);
+			tempstyle.href = href;
+			if (this.opts.printgif) {
+			  var bits = href.split("/");
+			  var gif = bits[bits.length-1];
+			  gif = this.opts.printgifpath + gif.replace(/.png/i,".gif");
+			  tempstyle.printImage = gif;
+			  tempstyle.mozPrintImage = gif;
+				}
+			if (!!this.opts.noshadow) {
+			  tempstyle.shadow="";
+			} else {
+			  // Try to guess the shadow image
+			  if (href.indexOf("/red.png")>-1 
+			   || href.indexOf("/blue.png")>-1 
+			   || href.indexOf("/green.png")>-1 
+			   || href.indexOf("/yellow.png")>-1 
+			   || href.indexOf("/lightblue.png")>-1 
+			   || href.indexOf("/purple.png")>-1
 		|| href.indexOf("/orange.png")>-1 
-               || href.indexOf("/pink.png")>-1 
+			   || href.indexOf("/pink.png")>-1 
 		|| href.indexOf("-dot.png")>-1 ) {
-                  tempstyle.shadow="http://maps.google.com/mapfiles/ms/icons/msmarker.shadow.png";
-              }
-              else if (href.indexOf("-pushpin.png")>-1  
+				  tempstyle.shadow="http://maps.google.com/mapfiles/ms/icons/msmarker.shadow.png";
+			  }
+			  else if (href.indexOf("-pushpin.png")>-1  
 		|| href.indexOf("/pause.png")>-1 
 		|| href.indexOf("/go.png")>-1    
 		|| href.indexOf("/stop.png")>-1     ) {
-                  tempstyle.shadow="http://maps.google.com/mapfiles/ms/icons/pushpin_shadow.png";
-              }
-              else {
-                var shadow = href.replace(".png",".shadow.png");
+				  tempstyle.shadow="http://maps.google.com/mapfiles/ms/icons/pushpin_shadow.png";
+			  }
+			  else {
+				var shadow = href.replace(".png",".shadow.png");
 		if(shadow.indexOf(".jpg")){ shadow =""; }
-                tempstyle.shadow=shadow;
-              }
-            }
-          }
-        }
+				tempstyle.shadow=shadow;
+			  }
+			}
+		  }
+		}
+	
+	 
+	 
 	if (this.opts.noshadow){
 		tempstyle.shadow ="";
 		}
 	return tempstyle;
 	};
-GeoXml.prototype.handleStyle = function(style,sid){
+GeoXml.prototype.handleStyle = function(style,sid,currstyle){
       var icons=style.getElementsByTagName("Icon");
       var tempstyle,opacity;
       var aa,bb,gg,rr;
       var fill,href,color,colormode, outline;
+	  fill = 1;
+	  outline = 0;
+	  tempstyle = currstyle;
       if (icons.length > 0) {
         href=GXml.value(icons[0].getElementsByTagName("href")[0]);
-	tempstyle = this.makeIcon(tempstyle,href);
+		tempstyle = this.makeIcon(tempstyle,href);
       	}
       // is it a LineStyle ?
       var linestyles=style.getElementsByTagName("LineStyle");
@@ -2164,15 +2363,16 @@ GeoXml.prototype.handleStyle = function(style,sid){
       // is it a PolyStyle ?
       var polystyles=style.getElementsByTagName("PolyStyle");
       if (polystyles.length > 0) {
-         fill = parseInt(GXml.value(polystyles[0].getElementsByTagName("fill")[0]),10);
-         outline = parseInt(GXml.value(polystyles[0].getElementsByTagName("outline")[0]),10);
-         color = GXml.value(polystyles[0].getElementsByTagName("color")[0]);
-         colormode = GXml.value(polystyles[0].getElementsByTagName("colorMode")[0]);
-
-	
-        if (polystyles[0].getElementsByTagName("fill").length == 0) {fill = 1;}
-        if (polystyles[0].getElementsByTagName("outline").length == 0) {outline = 1;}
-
+       
+        
+        color = GXml.value(polystyles[0].getElementsByTagName("color")[0]);
+        colormode = GXml.value(polystyles[0].getElementsByTagName("colorMode")[0]);
+        if (polystyles[0].getElementsByTagName("fill").length != 0) {
+			fill = parseInt(GXml.value(polystyles[0].getElementsByTagName("fill")[0]),10);
+			}
+        if (polystyles[0].getElementsByTagName("outline").length != 0) {
+			outline = parseInt(GXml.value(polystyles[0].getElementsByTagName("outline")[0]),10);
+			}
         aa = color.substr(0,2);
         bb = color.substr(2,2);
         gg = color.substr(4,2);
@@ -2309,7 +2509,7 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {
 				networklink = true;
 				break;
 			case "description" :
-			case  "Description":
+			case "Description":
 				desc = GeoXml.getDescription(nextn);
 				break;
 			case "open":
@@ -2620,7 +2820,9 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
     var shadow;
     var idx;
     var root = xmlDoc.documentElement;
-    if(!root){ alert("No document found"); return 0; }
+    if(!root){
+			return 0; 
+			}
     var placemarks = [];
     var name;
     var pname;
@@ -2744,14 +2946,14 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
 		style.href = style.image;
 		}
 	else {
-        	style = new GIcon(G_DEFAULT_ICON,that.rssicon);
-        	style.iconSize = new GSize(32,32);
-        	style.shadowSize = new GSize(59,32);
-        	style.dragCrossAnchor = new GPoint(2,8);
-       		style.iconAnchor = new GPoint(16,32);
+        style = new GIcon(G_DEFAULT_ICON,that.rssicon);
+        style.iconSize = new GSize(32,32);
+        style.shadowSize = new GSize(59,32);
+        style.dragCrossAnchor = new GPoint(2,8);
+        style.iconAnchor = new GPoint(16,32);
 		style.href = that.rssicon;
-        	shadow = that.rssicon.replace(".png",".shadow.png");
-        	style.shadow = shadow +"_shadow.png";
+        shadow = that.rssicon.replace(".png",".shadow.png");
+        style.shadow = shadow +"_shadow.png";
 		}
 	style.color = "#00FFFF";
 	style.width = "3";
@@ -3435,7 +3637,6 @@ Clusterer.Display = function (clusterer)
     var i, j, k, marker, cluster, l;
     clearTimeout( clusterer.timeout );
     if(clusterer.paren.allRemoved){
-	
 		return;
 		}
 
@@ -3545,38 +3746,31 @@ Clusterer.Display = function (clusterer)
     var nonvisibleMarkers = [];
     var viscount = 0;
     for ( i = 0; i < clusterer.markers.length; ++i ) {
-	marker = clusterer.markers[i];
-	vis = false;
-	if (marker!= null ){
-		var mid = clusterer.paren.myvar+"sb"+i;	
-	    	if(typeof marker.getBounds =="undefined"){
-			if (bounds.contains(marker.getPoint()) ) {
-				vis = true; 
+		marker = clusterer.markers[i];
+		vis = false;
+		if (marker!= null ){
+			var mid = clusterer.paren.myvar+"sb"+i;	
+				if(typeof marker.getBounds =="undefined"){
+					if (bounds.contains(marker.getPoint()) ) {
+						vis = true; 
+						viscount++;
+						}
+					}
+				else {
+					var b = marker.getBounds();
+					if(bounds.intersects(b)){
+							vis = true;
+							}
+					}
 				if(Lance$(mid)){ 
-					Lance$(mid).className = "inView";
-					}
-				viscount++;
-				}
-			else {	if(Lance$(mid)){ 
-					Lance$(mid).className = "outView";
-					}
-				}
+						if(vis){ Lance$(mid).className = "inView"; }
+						 else { Lance$(mid).className = "outView"; }
+						}
+				if(vis && (marker.hidden == false)){ visibleMarkers.push(i); }
+					else { nonvisibleMarkers.push(i); }
+			  
 			}
-	     	else {
-			var b = marker.getBounds();
-			 if(Lance$(mid)){ 
-	            		if(bounds.intersects(b)){
-					Lance$(mid).className = "inView";
-					}
-				else {  Lance$(mid).className = "outView"; }
-					}
-			vis = true;
-			}
-      		if(vis && (marker.hidden == false)){ visibleMarkers.push(i); }
-	            else { nonvisibleMarkers.push(i); }
-	      
 		}
-	}
 
     // Take down the non-visible markers.
     for ( i = 0; i < nonvisibleMarkers.length; ++i )
@@ -3585,7 +3779,7 @@ Clusterer.Display = function (clusterer)
 	if (marker.onMap){
 	    if(!!marker.label){
 		//clusterer.map.removeOverlay(marker.label);
-		marker.label.hide();
+			marker.label.hide();
 	    	}
 	    clusterer.map.removeOverlay(marker);
 	    marker.onMap = false;
@@ -3790,7 +3984,7 @@ Clusterer.Display = function (clusterer)
 Clusterer.PopUp = function ( cluster )
     {
     var clusterer = cluster.clusterer;
-    var html = '<table width="300">';
+    var html = '<table style="font-size:10px" width="300">';
     var n = 0;
     for ( var i = 0; i < cluster.markers.length; ++i )
 	{
@@ -3904,6 +4098,9 @@ LMarker.prototype.initialize = function(map) {
   div.style.cursor = 'pointer';
   div.style.fontSize = "0px";
   div.title = me.title_;
+  if(me.title){
+	div.title = me.title;
+	}
   var img = document.createElement("img");
   img.src = me.image_;
   img.style.width = me.width_ + "px";
@@ -3914,14 +4111,16 @@ LMarker.prototype.initialize = function(map) {
   GEvent.addDomListener(div, "click", function(event) {
     me.clicked_ = 1;
     GEvent.trigger(me, "click");
-  });
-
+	});
+ 
   GEvent.addDomListener(div, "mouseover", function() {
+	if(me.onOver) { me.onOver(); }
     me.bringToFront_();
-  });
+	});
   GEvent.addDomListener(div, "mouseout", function() {
+	if(me.onOut) { me.onOut(); }
     me.sendBack_();
-  });
+	});
   this.pane_.appendChild(div);
   this.map_ = map;
   this.div_ = div;
@@ -3946,6 +4145,9 @@ LMarker.prototype.copy = function() {
   opts.image = this.image_;
   opts.imageOver = this.image_;
   opts.title = this.title_;
+  if(this.title){
+	opts.title = title;
+	}
   opts.pane = this.pane_;
   return new LMarker(this.latlng, opts);
 };
@@ -3969,6 +4171,7 @@ LMarker.prototype.redraw = function(force) {
   this.div_.style.left = (divPixel.x - this.left_) + "px";
   this.div_.style.height = (this.height_) + "px";
   this.div_.style.top = (divPixel.y - this.top_)+ "px";
+  this.div_.style.visibility = "inherit";
 };
 
 LMarker.prototype.bringToFront_ = function() {
@@ -4139,7 +4342,8 @@ MessageBox.prototype.showMess = function (val,temp){
 		d.style.visibility = "visible";
 		d.style.left = "-1200px";
 		d.style.top = "-1200px";
-		this.centerMe = setTimeout(this.myvar+".centerThis()",5);
+		//alert(this.myvar);
+	 	this.centerMe = setTimeout(this.myvar+".centerThis()",5);
 	
 		d.style.zIndex = 1000;
 		document.body.appendChild(d);
