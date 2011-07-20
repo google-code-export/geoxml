@@ -331,14 +331,14 @@ GeoXml.prototype.createMarker = function(point, name, desc, style, idx, instyle,
 	        bicon.iconAnchor = this.opts.baseicon.iconAnchor;
 	        bicon.shadowSize = this.opts.baseicon.shadowSize;
 	        bicon.infoWindowAnchor = this.opts.baseicon.infoWindowAnchor;
-	    }
+			}
 	    else {
 	        //bicon = G_DEFAULT_ICON;
 	        bicon.infoWindowAnchor = new GPoint(16, 0);
 	        bicon.iconSize = new GSize(32, 32);
 	        bicon.shadowSize = new GSize(32, 32);
 	        bicon.iconAnchor = new GPoint(16, 32);
-	    }
+			}
 
 	    var shadow;
 	    var href;
@@ -543,19 +543,15 @@ GeoXml.prototype.createMarker = function(point, name, desc, style, idx, instyle,
 					if (bar && typeof bar != "undefined") {
 						bar.style.background = "none";
 						bar.style.color = "";
+						}
 					}
-				}
+				};
 			}
-		
-
-	    }
-
 	    if (!!this.opts.addmarker) {
 	        this.opts.addmarker(m, name, idx, parm, visible);
 	    } else {
 	        this.overlayman.AddMarker(m, name, idx, parm, visible);
 	    }
-
 	};
 
 // Create Polyline
@@ -1155,7 +1151,6 @@ GeoXml.prototype.recurseJSON = function (doc, title, desc, sbid, depth){
 		that.jsonmarks.push(po);
 		desc = unescape(po.description);
 		m = null;
-		var imgtag 
  		if(that.opts.preloadHTML && desc && desc.match(/<(\s)*img/i)){
 			var preload = document.createElement("span");
      		preload.style.visibility = "visible";
@@ -2010,7 +2005,7 @@ GeoXml.prototype.handlePlacemarkGeometry = function(mark, geom, idx, depth, full
 										newsrc = this.url.substring(0,slash)+"/" + srcs[sr];
 										desc = desc.replace(srcs[sr],newsrc);
 										}
-									alert(desc);
+									//alert(desc);
 									}
 								else {
 									//compute directory of html add relative path of kml and relative path of src.
@@ -4172,6 +4167,7 @@ LMarker.prototype.redraw = function(force) {
   this.div_.style.height = (this.height_) + "px";
   this.div_.style.top = (divPixel.y - this.top_)+ "px";
   this.div_.style.visibility = "inherit";
+  this.div_.style.cursor = "help";
 };
 
 LMarker.prototype.bringToFront_ = function() {
