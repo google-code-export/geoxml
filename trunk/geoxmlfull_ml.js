@@ -72,9 +72,9 @@ DynamicMarkerLayer.prototype.show = function(){
 				var opts = this.opts;
 				opts.markerpane = pane;
 				opts.nozoom = true;
-				this.geoxmls[y][x] = new GeoXml(name ,this.map,this.baseUrl+x+"/"+y+".kml",opts );
-				this.geoxmls[y][x].allRemoved = false;
-				this.geoxmls[y][x].parse();
+				this.geoxmls[z][y][x] = new GeoXml(name ,this.map,this.baseUrl+x+"/"+y+".kml",opts );
+				this.geoxmls[z][y][x].allRemoved = false;
+				this.geoxmls[z][y][x].parse();
 				}
 			}
 		}
@@ -90,15 +90,16 @@ DynamicMarkerLayer.prototype.hide = function(){
 	var endcol = parseInt(ne.x / 256 + this.buffer);
 	var endrow = parseInt(sw.y / 256 + this.buffer);
 	var startrow = parseInt(ne.y / 256 - this.buffer); 
+	var z = this.tiledZoom;
 	for(var y = startcol;y <= endcol;y++){
-		var col = this.geoxmls[y];
+		var col = this.geoxmls[z][y];
 		if(col) {
 			for(var x = startrow;x <= (endrow);x++){
 				if(col[x]){
-					if(this.geoxmls[y][x].polylines.length > 0 || this.geoxmls[y][x].polygons.length > 0){
-						this.geoxmls[y][x].hide();
+					if(this.geoxmls[z][y][x].polylines.length > 0 || this.geoxmls[z][y][x].polygons.length > 0){
+						this.geoxmls[z][y][x].hide();
 						}
-					this.geoxmls[y][x].allRemoved = true;
+					this.geoxmls[z][y][x].allRemoved = true;
 					}
 				}
 			}
