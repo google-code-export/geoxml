@@ -18,6 +18,7 @@ function KMLObj(title,desc,op,fid) {
 function Lance$(mid){ return document.getElementById(mid);}
 var topwin = self;
 var G = google.maps;
+
 function DynamicKMLLayer(myvar, map, url, tilezoomlevel, opts){
 		this.myvar = myvar;
 		this.opts = opts || {};
@@ -26,7 +27,10 @@ function DynamicKMLLayer(myvar, map, url, tilezoomlevel, opts){
 		this.baseUrl = url;
 		this.geoxmls = [];
 		this.buffer = 0;
+		this.hider = null;
 		this.tiledZoom = tilezoomlevel;
+		this.maxTileLevel = tilezoomlevel;
+		this.minTileLevel = tilezoomlevel;
 		var div = document.createElement("div");
 		div.style.border = ""; 
 		div.style.position = "absolute";
@@ -34,34 +38,92 @@ function DynamicKMLLayer(myvar, map, url, tilezoomlevel, opts){
 		div.style.margin = "0px";
 		div.style.fontSize = "0px";
 		div.zIndex = 1001;
-		//this.map.getPane(G_MAP_MARKER_PANE).appendChild(div);
+		div.id = "DynamicKMLLayer "+this.myvar;
 		this.markerpane = div;
 		}
 		
+DynamicKMLLayer.prototype = new google.maps.OverlayView;
+
+DynamicKMLLayer.prototype.onAdd = function() {
+	var pane = this.getPanes().overlayLayer;
+	pane.appendChild(this.markerpane);
+	//this.draw();
+	};
+	
+DynamicKMLLayer.prototype.onRemove = function() {
+	this.markerpane.parentNode.removeChild(this.markerpane);
+	};
+	
 DynamicKMLLayer.prototype.show = function(){
-	var proj = this.map.getCurrentMapType().getProjection();
-	var sw = proj.fromLatLngToPixel(this.map.getBounds().getSouthWest(), this.tiledZoom);
-	var ne = proj.fromLatLngToPixel(this.map.getBounds().getNorthEast(), this.tiledZoom);
-	var startcol = parseInt(sw.x / 256 - this.buffer);
-	var endcol = parseInt(ne.x / 256 + this.buffer);
-	var endrow = parseInt(sw.y / 256 + this.buffer);
-	var startrow = parseInt(ne.y / 256 - this.buffer); 
+	alert(this.markerpane);
+	if(this.hider){
+		google.maps.event.removeListener( this.hider );
+		}
+	//if(this.hider2){
+	//	google.maps.event.removeListener( this.hider2 );
+	//	}
+	this.allRemoved = false;
+	this.draw();
+	};
+	
+DynamicKMLLayer.prototype.draw = function(){
+	//var proj = this.map.getCurrentMapType().getProjection();
+	
+	if (this.allRemoved == true){
+		this.makeHidden();
+		return;
+		}
+ 
+	var zoom = this.tiledZoom;
+	if(this.map.getZoom() >= this.maxTileLevel){
+		zoom = this.maxTileLevel;
+		}
+	else {	  
+		if(this.map.getZoom() <= this.minTileLevel){
+			zoom = this.maxTileLevel;
+			}
+		else {
+			zoom = this.map.getZoom();
+			}
+		}
+		
+	var proj = this.map.getProjection();
+	var sw = this.map.getBounds().getSouthWest();//proj.fromLatLngToDivPixel(this.map.getBounds().getSouthWest());
+	var ne = this.map.getBounds().getNorthEast();//proj.fromLatLngToDivPixel(this.map.getBounds().getNorthEast()); 
+ 
+	var worldPoint=proj.fromLatLngToPoint(sw);
+	var pixelPoint=new google.maps.Point(parseInt(worldPoint.x*Math.pow(2,zoom)), parseInt(worldPoint.y*Math.pow(2, zoom)));
+
+	var startcol =parseInt(pixelPoint.x/256);
+	var endrow =parseInt(pixelPoint.y/256); 
+
+	worldPoint=proj.fromLatLngToPoint(ne);
+	pixelPoint=new google.maps.Point(parseInt(worldPoint.x*Math.pow(2,zoom)), parseInt(worldPoint.y*Math.pow(2, zoom)));
+ 
+	var endcol =parseInt(pixelPoint.x/256);
+	var startrow =parseInt(pixelPoint.y/256); 
 	this.markerpane.style.visibility = "visible";
+	var z = zoom;
+	this.tiledzoom = zoom;
+	if(this.geoxmls[z]){}
+	else {
+		this.geoxmls[z] = [];
+		}
 	for(var y = startcol;y <= endcol;y++){
-		var col = this.geoxmls[y];
+		var col = this.geoxmls[z][y];
 		for(var x = startrow;x <= (endrow);x++){
 			if(col  && col[x]) {
-				this.geoxmls[y][x].allRemoved = false;
-				this.geoxmls[y][x].show();
+				this.geoxmls[z][y][x].allRemoved = false;
+				this.geoxmls[z][y][x].show();
 				}
 			else {
-				if(this.geoxmls[y]){}
+				if(this.geoxmls[z][y]){}
 				else {
-					this.geoxmls[y] = [];
+					this.geoxmls[z][y] = [];
 					}
-				var name = this.myvar +".geoxmls["+y+"]["+x+"]";
+				var name = this.myvar +".geoxmls["+z+"]["+y+"]["+x+"]";
 				var div = document.createElement("div");
-				div.id = this.myvar+"_"+x+"_"+y;
+				div.id = this.myvar+"_"+x+"_"+y+"_"+z;
 				div.style.border = ""; 
 				div.style.position = "absolute";
 				div.style.padding = "0px";
@@ -72,33 +134,50 @@ DynamicKMLLayer.prototype.show = function(){
 				var opts = this.opts;
 				opts.markerpane = pane;
 				opts.nozoom = true;
-				this.geoxmls[y][x] = new GeoXml(name ,this.map,this.baseUrl+x+"/"+y+".kml",opts );
-				this.geoxmls[y][x].allRemoved = false;
-				this.geoxmls[y][x].parse();
+				this.geoxmls[z][y][x] = new GeoXml(name ,this.map,this.baseUrl+"/"+z+"/"+x+"/"+y+".kml",opts );
+				this.geoxmls[z][y][x].allRemoved = false;
+				this.geoxmls[z][y][x].parse();
 				}
 			}
 		}
 	};
-				
-			
+	
 DynamicKMLLayer.prototype.hide = function(){
+	this.allRemoved = true;
+	var that = this;
+	this.hider = google.maps.event.addListener( this.map, 'bounds_changed', function(){ that.makeHidden();} );
+	this.makeHidden();
+	};
+				
+DynamicKMLLayer.prototype.makeHidden = function(){
 	this.markerpane.style.visibility = "hidden";
-	var proj = this.map.getCurrentMapType().getProjection();
-	var sw = proj.fromLatLngToPixel(this.map.getBounds().getSouthWest(), this.tiledZoom);
-	var ne = proj.fromLatLngToPixel(this.map.getBounds().getNorthEast(), this.tiledZoom);
-	var startcol = parseInt(sw.x / 256 - this.buffer);
-	var endcol = parseInt(ne.x / 256 + this.buffer);
-	var endrow = parseInt(sw.y / 256 + this.buffer);
-	var startrow = parseInt(ne.y / 256 - this.buffer); 
+	var proj = this.map.getProjection();
+	var sw = this.map.getBounds().getSouthWest();
+	var ne = this.map.getBounds().getNorthEast();
+	var zoom = this.tiledzoom;
+	var worldPoint=proj.fromLatLngToPoint(sw);
+	var pixelPoint=new google.maps.Point(parseInt(worldPoint.x*Math.pow(2,zoom)), parseInt(worldPoint.y*Math.pow(2, zoom)));
+
+	var startcol =parseInt(pixelPoint.x/256) -1;
+	var endrow =parseInt(pixelPoint.y/256) + 1; 
+
+	worldPoint=proj.fromLatLngToPoint(ne);
+	pixelPoint=new google.maps.Point(parseInt(worldPoint.x*Math.pow(2,zoom)), parseInt(worldPoint.y*Math.pow(2, zoom)));
+ 
+	var endcol =parseInt(pixelPoint.x/256) + 1;
+	var startrow =parseInt(pixelPoint.y/256) -1; 
+ 	var z = this.tiledZoom;
+	
+	//alert("hiding"+startcol + " "+endcol+" "+startrow+" "+endrow+ " "+this.map.getZoom());
 	for(var y = startcol;y <= endcol;y++){
-		var col = this.geoxmls[y];
+		var col = this.geoxmls[z][y];
 		if(col) {
 			for(var x = startrow;x <= (endrow);x++){
 				if(col[x]){
-					if(this.geoxmls[y][x].polylines.length > 0 || this.geoxmls[y][x].polygons.length > 0){
-						this.geoxmls[y][x].hide();
-						}
-					this.geoxmls[y][x].allRemoved = true;
+				//	if(this.geoxmls[z][y][x].polylines.length > 0 || this.geoxmls[z][y][x].polygons.length > 0){
+						this.geoxmls[z][y][x].hide();
+				//		}
+					//this.geoxmls[z][y][x].allRemoved = true;
 					}
 				}
 			}
@@ -809,16 +888,6 @@ GeoXml.prototype.processPLine = function(pnum,linenum,idx) {
 	var obj = {};
 	
 	if(line && line.length){
-		//var polylineEncoder = new PolylineEncoder(18,2,0.00001,true);
-		//var result = polylineEncoder.dpEncode(line);
-		//obj = {};
-		//obj.points = result.encodedPoints;
-		//obj.levels = result.encodedLevels;
-		//obj.color = p.color;
-		//obj.weight = p.weight;
-		//obj.numLevels = 18;
-		//obj.zoomFactor = 2;
-		//obj.opacity = p.opacity;:
 		p.obj.polylines.push(line);
 		}
 
@@ -1450,13 +1519,13 @@ GeoXml.prototype.contentToggle = function(i,show){
  	var f = this.overlayman.folders[i];
 	var cb;
 	var j;
-	//alert(f.length+" "+this.overlayman.markers.length);
+	
 	var m;
 	if(typeof f == "undefined"){
 		this.mb.showMess("folder "+f+" not defined");
 		return;
 		}
-	
+	//alert(f.length+" "+this.overlayman.markers.length);
 	if(show){
 	for (j=0;j<f.length;j++){
 		   this.overlayman.markers[f[j]].setMap(this.map);
@@ -3720,12 +3789,7 @@ OverlayManager.Display = function (overlaymanager){
 	    		}
 		}
 	}
-
-    // Clustering!  This is some complicated stuff.  We have three goals
-    // here.  One, limit the number of markers & groups displayed, so the
-    // maps code doesnt slow to a crawl.  Two, when possible keep existing
-    // groups instead of replacing them with new ones, so that the app pans
-    // better.  And three, of course, be CPU and memory efficient.
+ 
 
     if (viscount > overlaymanager.maxVisibleMarkers) {
 	// Add to the list of groups by splitting up the current bounds
@@ -4095,7 +4159,7 @@ GeoXml.prototype.upgradeLayer = function(n) {
 	if(!found){ this.map.addMapType(this.baseLayers[n]); }
 	};
 
-GeoXml.prototype.makeWMSTileLayer = function(getmapstring, on, title, opac, attr, grouptitle, wmsbounds) {
+GeoXml.prototype.makeWMSTileLayer = function(getmapstring, on, title, opac, attr, grouptitle, wmsbounds) { //not yet working.
 	var that = this;
 	gmapstring = new String(getmapstring);
 	getmapstring = gmapstring.replace("&amp;","&");
