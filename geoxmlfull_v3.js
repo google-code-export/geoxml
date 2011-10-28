@@ -18,186 +18,7 @@ function KMLObj(title,desc,op,fid) {
 function Lance$(mid){ return document.getElementById(mid);}
 var topwin = self;
 var G = google.maps;
-
-function DynamicKMLLayer(myvar, map, url, tilezoomlevel, opts){
-		this.myvar = myvar;
-		this.opts = opts || {};
-		this.map = map;
-		this.isTiled = true;
-		this.baseUrl = url;
-		this.geoxmls = [];
-		this.buffer = 0;
-		this.hider = null;
-		this.tiledZoom = tilezoomlevel;
-		this.maxTileLevel = tilezoomlevel;
-		this.minTileLevel = tilezoomlevel;
-		var div = document.createElement("div");
-		div.style.border = ""; 
-		div.style.position = "absolute";
-		div.style.padding = "0px";
-		div.style.margin = "0px";
-		div.style.fontSize = "0px";
-		div.zIndex = 1001;
-		div.id = "DynamicKMLLayer "+this.myvar;
-		this.markerpane = div;
-		}
-		
-
-		
-DynamicKMLLayer.prototype = new google.maps.OverlayView;
-
-DynamicKMLLayer.prototype.onAdd = function() {
-	var pane = this.getPanes().overlayLayer;
-	pane.appendChild(this.markerpane);
-	var kmllayer = this;
-	if(this.getMaximumResolution || kmllayer.getMinimumResolution){
-		google.maps.event.addListener(this.map, 'zoom_changed', function(event) {
-			var zoomLevel = kmllayer.map.getZoom();
-			if (zoomLevel > kmllayer.getMaximumResolution() || zoomLevel < kmllayer.getMinimumResolution()){
-				kmllayer.hide();
-				}
-			else {
-				kmllayer.show();
-				}
-			});
-		}
-	//this.draw();
-	};
-	
-DynamicKMLLayer.prototype.onRemove = function() {
-	this.markerpane.parentNode.removeChild(this.markerpane);
-	};
-	
-DynamicKMLLayer.prototype.show = function(){
-	//alert(this.markerpane);
-	if(this.hider){
-		google.maps.event.removeListener( this.hider );
-		}
-	//if(this.hider2){
-	//	google.maps.event.removeListener( this.hider2 );
-	//	}
-	this.allRemoved = false;
-	this.draw();
-	};
-	
-DynamicKMLLayer.prototype.draw = function(){
-	//var proj = this.map.getCurrentMapType().getProjection();
-	
-	if (this.allRemoved == true){
-		this.makeHidden();
-		return;
-		}
  
-	var zoom = this.tiledZoom;
-	if(this.map.getZoom() >= this.maxTileLevel){
-		zoom = this.maxTileLevel;
-		}
-	else {	  
-		if(this.map.getZoom() <= this.minTileLevel){
-			zoom = this.maxTileLevel;
-			}
-		else {
-			zoom = this.map.getZoom();
-			}
-		}
-		
-	var proj = this.map.getProjection();
-	var sw = this.map.getBounds().getSouthWest();//proj.fromLatLngToDivPixel(this.map.getBounds().getSouthWest());
-	var ne = this.map.getBounds().getNorthEast();//proj.fromLatLngToDivPixel(this.map.getBounds().getNorthEast()); 
- 
-	var worldPoint=proj.fromLatLngToPoint(sw);
-	var pixelPoint=new google.maps.Point(parseInt(worldPoint.x*Math.pow(2,zoom)), parseInt(worldPoint.y*Math.pow(2, zoom)));
-
-	var startcol =parseInt(pixelPoint.x/256);
-	var endrow =parseInt(pixelPoint.y/256); 
-
-	worldPoint=proj.fromLatLngToPoint(ne);
-	pixelPoint=new google.maps.Point(parseInt(worldPoint.x*Math.pow(2,zoom)), parseInt(worldPoint.y*Math.pow(2, zoom)));
- 
-	var endcol =parseInt(pixelPoint.x/256);
-	var startrow =parseInt(pixelPoint.y/256); 
-	this.markerpane.style.visibility = "visible";
-	var z = zoom;
-	this.tiledzoom = zoom;
-	if(this.geoxmls[z]){}
-	else {
-		this.geoxmls[z] = [];
-		}
-	for(var y = startcol;y <= endcol;y++){
-		var col = this.geoxmls[z][y];
-		for(var x = startrow;x <= (endrow);x++){
-			if(col  && col[x]) {
-				this.geoxmls[z][y][x].allRemoved = false;
-				this.geoxmls[z][y][x].show();
-				}
-			else {
-				if(this.geoxmls[z][y]){}
-				else {
-					this.geoxmls[z][y] = [];
-					}
-				var name = this.myvar +".geoxmls["+z+"]["+y+"]["+x+"]";
-				var div = document.createElement("div");
-				div.id = this.myvar+"_"+x+"_"+y+"_"+z;
-				div.style.border = ""; 
-				div.style.position = "absolute";
-				div.style.padding = "0px";
-				div.style.margin = "0px";
-				div.style.fontSize = "0px";
-				div.zIndex = 1001;
-				var pane = this.markerpane.appendChild(div);
-				var opts = this.opts;
-				opts.markerpane = pane;
-				opts.nozoom = true;
-				this.geoxmls[z][y][x] = new GeoXml(name ,this.map,this.baseUrl+"/"+z+"/"+x+"/"+y+".kml",opts );
-				this.geoxmls[z][y][x].allRemoved = false;
-				this.geoxmls[z][y][x].parse();
-				}
-			}
-		}
-	};
-	
-DynamicKMLLayer.prototype.hide = function(){
-	this.allRemoved = true;
-	var that = this;
-	this.hider = google.maps.event.addListener( this.map, 'bounds_changed', function(){ that.makeHidden();} );
-	this.makeHidden();
-	};
-				
-DynamicKMLLayer.prototype.makeHidden = function(){
-	this.markerpane.style.visibility = "hidden";
-	var proj = this.map.getProjection();
-	var sw = this.map.getBounds().getSouthWest();
-	var ne = this.map.getBounds().getNorthEast();
-	var zoom = this.tiledzoom;
-	var worldPoint=proj.fromLatLngToPoint(sw);
-	var pixelPoint=new google.maps.Point(parseInt(worldPoint.x*Math.pow(2,zoom)), parseInt(worldPoint.y*Math.pow(2, zoom)));
-
-	var startcol =parseInt(pixelPoint.x/256) -1;
-	var endrow =parseInt(pixelPoint.y/256) + 1; 
-
-	worldPoint=proj.fromLatLngToPoint(ne);
-	pixelPoint=new google.maps.Point(parseInt(worldPoint.x*Math.pow(2,zoom)), parseInt(worldPoint.y*Math.pow(2, zoom)));
- 
-	var endcol =parseInt(pixelPoint.x/256) + 1;
-	var startrow =parseInt(pixelPoint.y/256) -1; 
- 	var z = this.tiledZoom;
-	
-	//alert("hiding"+startcol + " "+endcol+" "+startrow+" "+endrow+ " "+this.map.getZoom());
-	for(var y = startcol;y <= endcol;y++){
-		var col = this.geoxmls[z][y];
-		if(col) {
-			for(var x = startrow;x <= (endrow);x++){
-				if(col[x]){
-				//	if(this.geoxmls[z][y][x].polylines.length > 0 || this.geoxmls[z][y][x].polygons.length > 0){
-						this.geoxmls[z][y][x].hide();
-				//		}
-					//this.geoxmls[z][y][x].allRemoved = true;
-					}
-				}
-			}
-		}
-	};
-		
 function GeoXml(myvar, map, url, opts) {
   // store the parameters
   this.myvar = myvar;
@@ -950,13 +771,19 @@ GeoXml.prototype.finishPolygonJSON = function(op,idx,updatebound,lastpoly) {
 	else {
 		p.strokeColor = op.color;
 		}
-	if(op.strokeWeight){
-		p.strokeWeight = op.strokeWeight;
+	if(op.outline) {
+		if(op.strokeWeight){
+			p.strokeWeight = op.strokeWeight;
+			}
+		else {
+			p.strokeWeight = op.width;
+			}
+		p.strokeOpacity = op.strokeOpacity;
 		}
 	else {
-		p.strokeWeight = op.width;
+		p.strokeWeight = 0;
+		p.strokeOpacity = 0;
 		}
-  p.strokeOpacity = op.strokeOpacity;
   p.hilite = that.hilite;
   p.fillOpacity = op.opacity;
   p.fillColor = op.color.toString();
@@ -2593,9 +2420,9 @@ GeoXml.prototype.handleStyle = function(style,sid,currstyle){
         if (!!!that.styles[strid]) {
           that.styles[strid] = {};
         1}
-        that.styles[strid].color=color;
-        that.styles[strid].width=width;
-        that.styles[strid].opacity=opacity;
+        that.styles[strid].strokeColor=color;
+        that.styles[strid].strokeWeight=width;
+        that.styles[strid].strokeOpacity=opacity;
       }
       // is it a PolyStyle ?
       var polystyles=style.getElementsByTagName("PolyStyle");
@@ -2622,14 +2449,14 @@ GeoXml.prototype.handleStyle = function(style,sid,currstyle){
 		that.styles[strid].fill = fill;
 		that.styles[strid].outline = outline;
 		if(colormode != "random") {
-				that.styles[strid].fillcolor = color;
+			that.styles[strid].fillcolor = color;
 			}
 		else {
 			that.styles[strid].colortint = color;
 			}
 			that.styles[strid].fillOpacity=opacity;
 			if (!fill) { that.styles[strid].fillOpacity = 0; }
-			if (!outline) { that.styles[strid].opacity = 0; }
+			if (!outline) { that.styles[strid].strokeOpacity = 0; }
 		  }
 	  
 	tempstyle = that.styles[strid];
