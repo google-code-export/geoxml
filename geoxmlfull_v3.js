@@ -42,11 +42,25 @@ function DynamicKMLLayer(myvar, map, url, tilezoomlevel, opts){
 		this.markerpane = div;
 		}
 		
+
+		
 DynamicKMLLayer.prototype = new google.maps.OverlayView;
 
 DynamicKMLLayer.prototype.onAdd = function() {
 	var pane = this.getPanes().overlayLayer;
 	pane.appendChild(this.markerpane);
+	var kmllayer = this;
+	if(this.getMaximumResolution || kmllayer.getMinimumResolution){
+		google.maps.event.addListener(this.map, 'zoom_changed', function(event) {
+			var zoomLevel = kmllayer.map.getZoom();
+			if (zoomLevel > kmllayer.getMaximumResolution() || zoomLevel < kmllayer.getMinimumResolution()){
+				kmllayer.hide();
+				}
+			else {
+				kmllayer.show();
+				}
+			});
+		}
 	//this.draw();
 	};
 	
@@ -55,7 +69,7 @@ DynamicKMLLayer.prototype.onRemove = function() {
 	};
 	
 DynamicKMLLayer.prototype.show = function(){
-	alert(this.markerpane);
+	//alert(this.markerpane);
 	if(this.hider){
 		google.maps.event.removeListener( this.hider );
 		}
