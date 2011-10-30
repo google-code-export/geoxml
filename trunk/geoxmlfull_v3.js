@@ -3558,9 +3558,9 @@ OverlayManager.Display = function (overlaymanager){
 			}
 		
 		}
-	if(!!!bounds && map){
+	if(!!!bounds && overlaymanager.map){
 		//alert("finding bounds");
-		bounds = map.getBounds();
+		bounds = overlaymanager.map.getBounds();
 		if(!!!bounds)return;
 		}
     // Partition the markers into visible and non-visible lists.
