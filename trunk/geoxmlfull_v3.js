@@ -149,7 +149,7 @@ function GeoXml(myvar, map, url, opts) {
   this.NumLevels = 18;
   this.maxtitlewidth = 0; 
   this.styles = []; 
- 
+  this.currdeschead = "";
   this.jsdocs = [];
   this.jsonmarks = [];
   this.polyset = []; /* used while rendering */
@@ -219,6 +219,7 @@ GeoXml.prototype.clear = function(idx) {
     this.overlayman.byid = [];
   	this.overlayman.folderBounds.push(new google.maps.LatLngBounds()); 
  	this.wmscount = 0;
+	this.currdeschead = "";
 	};
 
  
@@ -699,7 +700,7 @@ GeoXml.prototype.createPolyline = function(lines,color,width,opacity,pbounds,nam
   	else { p.color = color; }
   	if(!opacity){p.opacity= 0.45;}
 		else { p.opacity = opacity; }
-  	if(!width){p.width = 2;}
+  	if(!width){p.width = 4;}
  		 else{  p.width = width; }
   	p.idx = idx; 
 	p.visibility = visible;
@@ -1574,7 +1575,7 @@ GeoXml.prototype.parseXML = function(doc,titles,latlon) {
     this.processing(this.docs[u],names[u],latlon);
   }
 };
-var currdeschead = "";
+
 GeoXml.prototype.makeDescription = function(elem, title, depth) {
          var d = ""; 
 	 var len = elem.childNodes.length;
@@ -1592,7 +1593,7 @@ GeoXml.prototype.makeDescription = function(elem, title, depth) {
 		else { base = nn;}
  	
 		if(base.match(/^(lat|long|visible|visibility|boundedBy|StyleMap|drawOrder|styleUrl|posList|coordinates|Style|Polygon|LineString|Point|LookAt|drawOrder|Envelope|Box|MultiPolygon|where|guid)/)){
- 			currdeschead = ""; 
+ 			this.currdeschead = ""; 
 			}
 		else {
 			
@@ -1604,7 +1605,7 @@ GeoXml.prototype.makeDescription = function(elem, title, depth) {
 					if(base.match(/SimpleData/)){
 						base = subelem.getAttribute("name");
 						}
-					currdeschead = "<b>&nbsp;"+base+"&nbsp;</b> :";
+					this.currdeschead = "<b>&nbsp;"+base+"&nbsp;</b> :";
 					}
 				}
 			val = subelem.nodeValue;
@@ -1618,7 +1619,7 @@ GeoXml.prototype.makeDescription = function(elem, title, depth) {
 					val = '<a target="_blank" title="'+val+'" href="' + val + '">Link</a>';
 						}
 					}
-				currdeschead = "Link to Article"; 
+				this.currdeschead = "Link to Article"; 
 				}
 			if(base.match(/(\S)*(name|title)(\S)*/i)){
 			 	if(!val){ val = $(subelem).text(); }
@@ -1626,7 +1627,7 @@ GeoXml.prototype.makeDescription = function(elem, title, depth) {
 				if(val && typeof title!="undefined" && title.length > this.maxtitlewidth){
 					this.maxtitlewidth = title.length;
 					}
-				currdeschead="";
+				this.currdeschead="";
 				}
 			else {
 				 if(val && val.match(/(\S)+/)){		
@@ -1644,8 +1645,8 @@ GeoXml.prototype.makeDescription = function(elem, title, depth) {
 				
 					}
 			   if(val && val !="null" && val!='  ' && val!= ' ' && (val.match(/(\s|\t|\n)*/)!=true)) { 
-				if(currdeschead != ''){ d += '<br />';}
-				d += currdeschead + ""+val+""; currdeschead = ""; 
+				if(this.currdeschead != ''){ d += '<br />';}
+				d += this.currdeschead + ""+val+""; this.currdeschead = ""; 
 			   	}
 			
 				if(subelem.childNodes.length){
@@ -3395,7 +3396,7 @@ OverlayManager.prototype.AddMarker = function (marker, title, idx, sidebar, visi
 
 OverlayManager.prototype.zoomToFolder = function (idx) {
 	var bounds = this.folderBounds[idx];
-	map.fitBounds(bounds);
+	this.map.fitBounds(bounds);
 	};
 
 
@@ -3765,7 +3766,7 @@ OverlayManager.Display = function (overlaymanager){
 			}
 		else {
 			marker.onMap = true;
-			marker.setMap(this.map);
+			marker.setMap(overlaymanager.map);
 			}
 	    }
 	}
