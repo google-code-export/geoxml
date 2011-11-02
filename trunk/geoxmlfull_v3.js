@@ -171,7 +171,28 @@ function GeoXml(myvar, map, url, opts) {
   this.unnamedplace="un-named place";
   this.unnamedarea="un-named area";
   }
-
+  
+GeoXml.prototype.setOpacity = function(opacity){
+	this.opts.overrideOpacity = opacity;
+	//alert("now using opacity "+opacity);
+	for(var m=0;m<this.overlayman.markers.length;m++){
+		var marker = this.overlayman.markers[m];
+		if (marker.getPaths){ //polygon set fill opacity
+		//	alert(marker.fillColor);
+			this.overlayman.markers[m].fillOpacity = opacity;
+			this.overlayman.markers[m].setOptions({fillOpacity:opacity});
+			}
+		else {
+			if(marker.getPath){
+				//alert(marker.strokeColor+" "+marker.strokeWeight)
+				this.overlayman.markers[m].strokeOpacity = opacity;
+				this.overlayman.markers[m].setOptions({strokeOpacity:opacity});
+				}
+			}
+		
+		}
+	};
+	
 GeoXml.stripHTML = function(s){
 	return (s.replace(/(<([^>]+)>)/ig,""));
 	};
@@ -2462,6 +2483,9 @@ GeoXml.prototype.handleStyle = function(style,sid,currstyle){
         rr = color.substr(6,2);
         color = "#" + rr + gg + bb;
         opacity = parseInt(aa,16)/256;
+		if(that.opts.overrideOpacity){
+			opacity = that.opts.overrideOpacity;
+			}
         if (!!!that.styles[strid]) {
           that.styles[strid] = {};
         1}
@@ -2488,6 +2512,10 @@ GeoXml.prototype.handleStyle = function(style,sid,currstyle){
         rr = color.substr(6,2);
         color = "#" + rr + gg + bb;
         opacity = parseInt(aa,16)/256;
+		if(that.opts.overrideOpacity){
+			opacity = that.opts.overrideOpacity;
+			}
+
         if (!!!that.styles[strid]) {
           that.styles[strid] = {};
         }
