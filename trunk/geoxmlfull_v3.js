@@ -1537,7 +1537,7 @@ GeoXml.prototype.addAll = function() {
 		}
 	};
 	
-GeoXml.prototype.parseString = function(doc,titles,latlon) {
+GeoXml.prototype.processString = function(doc,titles,latlon) {
   var names =[];
  if(titles) {
  	names = titles.split(",");
@@ -1550,11 +1550,55 @@ GeoXml.prototype.parseString = function(doc,titles,latlon) {
   this.progress += this.docs.length;
   for (var u=0; u<this.docs.length; u++) {
     this.mb.showMess("Processing "+names[u]);
-    this.processing($.parseXML(this.docs[u]),names[u],latlon);
+    this.processing(this.parseXML(this.docs[u]),names[u],latlon);
   }
 };
 
-GeoXml.prototype.parseXML = function(doc,titles,latlon) {
+// Cross-browser xml parsing
+GeoXml.prototype.parseXML = function( data ) {
+		var xml, tmp;
+		try {
+			if ( window.DOMParser ) { // Standard
+				tmp = new DOMParser();
+				xml = tmp.parseFromString( data , "text/xml" );
+			} else { // IE
+				xml = new ActiveXObject( "Microsoft.XMLDOM" );
+				xml.async = "false";
+				xml.loadXML( data );
+			}
+		} catch( e ) {
+			xml = undefined;
+		}
+		if ( !xml || !xml.documentElement || xml.getElementsByTagName( "parsererror" ).length ) {
+			alert( "Invalid XML: " + data );
+		}
+		return xml;
+	};
+
+GeoXml.prototype.getText = function( elems ) {
+	var ret = "", elem;
+	if (!elems||!elems.childNodes)
+		return ret;
+		
+	elems = elems.childNodes;
+
+	for ( var i = 0; elems[i]; i++ ) {
+		elem = elems[i];
+
+		// Get the text from text nodes and CDATA nodes
+		if ( elem.nodeType === 3 || elem.nodeType === 4 ) {
+			ret += elem.nodeValue;
+
+		// Traverse everything else, except comment nodes
+		} else if ( elem.nodeType !== 8 ) {
+			ret += this.getText( elem.childNodes );
+		}
+	}
+
+	return ret;
+};
+
+GeoXml.prototype.processXML = function(doc,titles,latlon) {
  var names =[];
  if(typeof titles !="undefined"){
  	if(typeof titles == "string") {
@@ -1622,7 +1666,7 @@ GeoXml.prototype.makeDescription = function(elem, title, depth) {
 				this.currdeschead = "Link to Article"; 
 				}
 			if(base.match(/(\S)*(name|title)(\S)*/i)){
-			 	if(!val){ val = $(subelem).text(); }
+			 	if(!val){ val = this.getText(subelem) }
 				title = val;
 				if(val && typeof title!="undefined" && title.length > this.maxtitlewidth){
 					this.maxtitlewidth = title.length;
@@ -1717,7 +1761,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
 		if(poslist.length <1) { poslist = mark.getElementsByTagName("posList"); }
 		for(l =0;l<poslist.length;l++){
 			coords = " ";
-			cor = $(poslist.item(l)).text().split(' ');
+			cor = this.getText(poslist.item(l)).split(' ');
 			if(that.isWFS){
 			for(cc=0;cc<(cor.length-1);cc++){
 					if(cor[cc] && cor[cc]!=" " && !isNaN(parseFloat(cor[cc]))){
@@ -1740,7 +1784,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
  				if(poslist.item(l).parentNode && (poslist.item(l).parentNode.nodeName == "gml:LineString") ){ line_count++; }
 					else { poly_count++; }
 				cm = "<coordinates>"+coords+"</coordinates>";
-				node = $.parseXML(cm);
+				node = this.parseXML(cm);
 				if(coordset.push){ coordset.push(node); }
 				}
 			}
@@ -1749,13 +1793,13 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
 		if(pos.length <1){ pos = mark.getElementsByTagName("gml:pos"); }
 		if(pos.length){
 			for(p=0;p<pos.length;p++){
-				nv = $(pos.item(p)).text();
+				nv = this.getText(pos.item(p));
 				cor = nv.split(" ");
 				if(!that.isWFS){
-					node = $.parseXML("<coordinates>"+cor[1]+","+cor[0]+"</coordinates>");
+					node = this.parseXML("<coordinates>"+cor[1]+","+cor[0]+"</coordinates>");
 					}
 				else {
-					node = $.parseXML("<coordinates>"+cor[0]+","+cor[1]+"</coordinates>");
+					node = this.parseXML("<coordinates>"+cor[0]+","+cor[1]+"</coordinates>");
 					}
 				if(coordset.push){ coordset.push(node); }
 				}
@@ -1794,7 +1838,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
             skiprender = true;
             }
        
-       coords = $(coordset[c]).text(); 
+       coords = this.getText(coordset[c]); 
        coords += " ";
        coords=coords.replace(/\s+/g," "); 
           // tidy the whitespace
@@ -1962,7 +2006,7 @@ GeoXml.prototype.handlePlacemarkGeometry = function(mark, geom, idx, depth, full
             }
             for (l = 0; l < poslist.length; l++) {
                 coords = " ";
-                var plitem = $(poslist.item(l)).text() + " ";
+                var plitem = this.getText(poslist.item(l)) + " ";
                 plitem = plitem.replace(/(\s)+/g, ' ');
                 cor = plitem.split(' ');
                 if (that.isWFS) {
@@ -1987,7 +2031,7 @@ GeoXml.prototype.handlePlacemarkGeometry = function(mark, geom, idx, depth, full
                     if (poslist.item(l).parentNode && (poslist.item(l).parentNode.nodeName == "gml:LineString")) { line_count++; }
                     else { poly_count++; }
                     cm = "<coordinates>" + coords + "</coordinates>";
-                    node = $.parseXML(cm);
+                    node = this.parseXML(cm);
                     if (coordset.push) { coordset.push(node); }
                 }
             }
@@ -1996,13 +2040,13 @@ GeoXml.prototype.handlePlacemarkGeometry = function(mark, geom, idx, depth, full
             if (pos.length < 1) { pos = geom.getElementsByTagName("gml:pos"); }
             if (pos.length) {
                 for (p = 0; p < pos.length; p++) {
-                    nv = $(pos.item(p)).text() + " ";
+                    nv = this.getText(pos.item(p)) + " ";
                     cor = nv.split(' ');
                     if (!that.isWFS) {
-                        node = $.parseXML("<coordinates>" + cor[1] + "," + cor[0] + "</coordinates>");
+                        node = this.parseXML("<coordinates>" + cor[1] + "," + cor[0] + "</coordinates>");
                     }
                     else {
-                        node = $.parseXML("<coordinates>" + cor[0] + "," + cor[1] + "</coordinates>");
+                        node = this.parseXML("<coordinates>" + cor[0] + "," + cor[1] + "</coordinates>");
                     }
                     if (coordset.push) { coordset.push(node); }
                 }
@@ -2014,7 +2058,7 @@ GeoXml.prototype.handlePlacemarkGeometry = function(mark, geom, idx, depth, full
 
         for (var ln = 0; ln < mark.childNodes.length; ln++) {
             var nn = mark.childNodes.item(ln).nodeName;
-            nv = $(mark.childNodes.item(ln)).text();
+            nv = this.getText(mark.childNodes.item(ln));
             var ns = nn.split(":");
             var base;
             if (ns.length > 1) { base = ns[1].toLowerCase(); }
@@ -2162,7 +2206,7 @@ GeoXml.prototype.handlePlacemarkGeometry = function(mark, geom, idx, depth, full
                     }
                 }
                 if (coords != "") {
-                    node = $.parseXML("<coordinates>" + coords + "</coordinates>");
+                    node = this.parseXML("<coordinates>" + coords + "</coordinates>");
                     if (coordset.push) { coordset.push(node); }
                 }
             }
@@ -2199,7 +2243,7 @@ GeoXml.prototype.handlePlacemarkGeometry = function(mark, geom, idx, depth, full
         if (newcoords && typeof lat != "undefined") {
             if (lat) {
                 var cs = "" + lon + "," + lat + " ";
-                node = $.parseXML("<coordinates>" + cs + "</coordinates>");
+                node = this.parseXML("<coordinates>" + cs + "</coordinates>");
                 coordset.push(node);
             }
         }
@@ -2211,7 +2255,7 @@ GeoXml.prototype.handlePlacemarkGeometry = function(mark, geom, idx, depth, full
             if (coordset[c].parentNode && (coordset[c].parentNode.nodeName.match(/^(gml:Box|gml:Envelope)/i))) {
                 skiprender = true;
 				}
-            coords = $(coordset[c]).text();
+            coords = this.getText(coordset[c]);
             coords += " ";
             coords = coords.replace(/(\s)+/g, " ");
             // tidy the whitespace
@@ -2396,11 +2440,11 @@ GeoXml.prototype.handleStyle = function(style,sid,currstyle){
 	  //tempstyle.url = currstyle.url;
 	  
       if (icons.length > 0) {
-        href=$(icons[0].getElementsByTagName("href")[0]).text();
+        href=this.getText(icons[0].getElementsByTagName("href")[0]);
 		if(currstyle && currstyle.scale){
 			myscale = currstyle.scale;
 			}
-		var scale = parseFloat($(icons[0].getElementsByTagName("scale")[0]).text(),10);
+		var scale = parseFloat(this.getText(icons[0].getElementsByTagName("scale")[0]),10);
 		if(scale){
 			myscale = scale;
 			}
@@ -2409,9 +2453,9 @@ GeoXml.prototype.handleStyle = function(style,sid,currstyle){
       // is it a LineStyle ?
       var linestyles=style.getElementsByTagName("LineStyle");
       if (linestyles.length > 0) {
-        var width = parseInt($(linestyles[0].getElementsByTagName("width")[0]).text(),10);
+        var width = parseInt(this.getText(linestyles[0].getElementsByTagName("width")[0]),10);
         if (width < 1) {width = 1;}
-        color = $(linestyles[0].getElementsByTagName("color")[0]).text();
+        color = this.getText(linestyles[0].getElementsByTagName("color")[0]);
         aa = color.substr(0,2);
         bb = color.substr(2,2);
         gg = color.substr(4,2);
@@ -2430,13 +2474,13 @@ GeoXml.prototype.handleStyle = function(style,sid,currstyle){
       if (polystyles.length > 0) {
        
         
-        color = $(polystyles[0].getElementsByTagName("color")[0]).text();
-        colormode = $(polystyles[0].getElementsByTagName("colorMode")[0]).text();
+        color = this.getText(polystyles[0].getElementsByTagName("color")[0]);
+        colormode = this.getText(polystyles[0].getElementsByTagName("colorMode")[0]);
         if (polystyles[0].getElementsByTagName("fill").length != 0) {
-			fill = parseInt($(polystyles[0].getElementsByTagName("fill")[0]).text(),10);
+			fill = parseInt(this.getText(polystyles[0].getElementsByTagName("fill")[0]),10);
 			}
         if (polystyles[0].getElementsByTagName("outline").length != 0) {
-			outline = parseInt($(polystyles[0].getElementsByTagName("outline")[0]).text(),10);
+			outline = parseInt(this.getText(polystyles[0].getElementsByTagName("outline")[0]),10);
 			}
         aa = color.substr(0,2);
         bb = color.substr(2,2);
@@ -2506,7 +2550,7 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {
 		switch (nn) {
 		 	case "name":  
 			case "title": 
-				title = $(nextn).text();
+				title = this.getText(nextn);
 				if(title.length + depth > this.maxtitlewidth){ this.maxtitlewidth = title.length+depth;	}
 			 	break;
 			case "Folder" :
@@ -2514,19 +2558,19 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {
 				sf.push(nextn); 
 				break;
 		 	case "GroundOverlay":
-				url=$(nextn.getElementsByTagName("href")[0]).text();
-				var north=parseFloat($(nextn.getElementsByTagName("north")[0]).text());
-				var south=parseFloat($(nextn.getElementsByTagName("south")[0]).text());
-				var east=parseFloat($(nextn.getElementsByTagName("east")[0]).text());
-				var west=parseFloat($(nextn.getElementsByTagName("west")[0]).text());
-				var attr = $(nextn.getElementsByTagName("attribution")[0]).text();
+				url=this.getText(nextn.getElementsByTagName("href")[0]);
+				var north=parseFloat(this.getText(nextn.getElementsByTagName("north")[0]));
+				var south=parseFloat(this.getText(nextn.getElementsByTagName("south")[0]));
+				var east=parseFloat(this.getText(nextn.getElementsByTagName("east")[0]));
+				var west=parseFloat(this.getText(nextn.getElementsByTagName("west")[0]));
+				var attr = this.getText(nextn.getElementsByTagName("attribution")[0]);
 				sw = new google.maps.LatLng(south,west);
 				ne = new google.maps.LatLng(north,east); 
 				this.bounds.extend(sw); 
       			this.bounds.extend(ne);
-				color=$(nextn.getElementsByTagName("color")[0]).text();
+				color=this.getText(nextn.getElementsByTagName("color")[0]);
 				opacity = parseInt(color.substring(1,3),16)/256;
-				mytitle = $(nextn.getElementsByTagName("name")[0]).text();
+				mytitle = this.getText(nextn.getElementsByTagName("name")[0]);
 				var arcims = /arcimsproxy/i; 
 				if(url.match(arcims)) {
 					url += "&bbox="+west+","+south+","+east+","+north+"&response=img";
@@ -2571,7 +2615,7 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {
 				}
 				break;
 		 	case "NetworkLink":
-			       url = $(nextn.getElementsByTagName("href")[0]).text();
+			       url = this.getText(nextn.getElementsByTagName("href")[0]);
 				networklink = true;
 				break;
 			case "description" :
@@ -2579,15 +2623,15 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {
 				desc = GeoXml.getDescription(nextn);
 				break;
 			case "open":
-				if($(nextn).text() == "1"){  keepopen = true; }
-				if($(nextn).text() == "0") { keepopen = this.forcefoldersopen; }
+				if(this.getText(nextn) == "1"){  keepopen = true; }
+				if(this.getText(nextn) == "0") { keepopen = this.forcefoldersopen; }
 				break;
 			case "visibility":
-				if($(nextn).text() == "0") { visible = false; }
+				if(this.getText(nextn) == "0") { visible = false; }
 				break;
 			case "snippet" :
 			case "Snippet" :
-				snippet = GeoXml.stripHTML($(nextn).text());
+				snippet = GeoXml.stripHTML(this.getText(nextn));
 				snippet = snippet.replace(/\n/g,'');
 				break;
 			default:
@@ -2744,7 +2788,7 @@ GeoXml.prototype.processGPX = function(node,title,sbid,depth) {
 		var nextn = node.childNodes.item(ln);
 		var nn = nextn.nodeName;
 		if(nn == "name" || nn == "title"){
-			title = $(nextn).text();
+			title = this.getText(nextn);
 			if(title.length + depth > this.maxtitlewidth){
 				this.maxtitlewidth = title.length+depth;	
 				}
@@ -2784,14 +2828,14 @@ GeoXml.prototype.processGPX = function(node,title,sbid,depth) {
 			pm.push(nextn);
 			}
 		if(nn == "description" ||  nn == "desc"){
-			desc = $(nextn).text();
+			desc = this.getText(nextn);
 			}
 
 		}
 
 	if(coords.length){
 		var nc = "<?xml version=\"1.0\"?><Placemark><name>"+title+"</name><description>"+desc+"</description><LineString><coordinates>"+coords+"</coordinates></LineString></Placemark>";
-		var pathnode = $.parseXML(nc).documentElement;
+		var pathnode = this.parseXML(nc).documentElement;
 		pm.push(pathnode);
 		}
 
@@ -2951,7 +2995,7 @@ GeoXml.prototype.processing = function(xmlDoc,title, latlon, desc, sbid) {
 				for(var k =0;(k<pair.childNodes.length && !found);k++){
 					var pn = pair.childNodes[k].nodeName;
 					if(pn == "styleUrl"){
-						var pid = $(pair.childNodes[k]).text();
+						var pid = this.getText(pair.childNodes[k]);
 						that.styles["#"+sid] = that.styles[pid];
 						found = true;
 						}
@@ -3125,7 +3169,7 @@ GeoXml.prototype.processGML = function(root,title, latlon, desc, me) {
 						 for (k = 0; k < box.childNodes.length; k++) {
 							coor = box.childNodes.item(k);
 							if(coor.nodeName =="gml:coordinates" ||coor.nodeName =="coordinates" ){
-								coorstr =  $(coor).text();
+								coorstr =  this.getText(coor);
 								pts = coorstr.split(" ");
 								pt1 = pts[0].split(",");
 								pt2 = pts[1].split(",");
@@ -3984,7 +4028,7 @@ GeoXml.prototype.loadJSONUrl = function (url, title, latlon, desc, idx) {
 GeoXml.prototype.loadXMLUrl = function(url, title, latlon, desc, idx) {
     var that = this;
     that.DownloadURL(url, function(doc) {
-        var xmlDoc = $.parseXML(doc);
+        var xmlDoc = that.parseXML(doc);
         that.processing(xmlDoc, title, latlon, desc, idx);
     }, title);
 };
