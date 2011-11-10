@@ -34,6 +34,7 @@ function GeoXml(myvar, map, url, opts) {
   
   this.mb.style = this.opts.messagestyle || { backgroundColor: "silver"};
   this.alwayspop = this.opts.alwaysinfopop || false;
+  this.veryquiet = this.opts.veryquiet || false;
   this.quiet = this.opts.quiet || false;
   // infowindow styles
   this.titlestyle = this.opts.titlestyle || 'style = "font-family: arial, sans-serif;font-size: medium;font-weight:bold;"';
@@ -1334,7 +1335,11 @@ GeoXml.prototype.saveJSON = function(){
 			}
 		}
 	else {
-		alert("No JSON methods currently available");
+		var errmess="No JSON methods currently available";
+		if(console){
+			console.error(errmess);
+			}
+		else { alert(errmess); }
 		}
 	};
 
@@ -1591,7 +1596,11 @@ GeoXml.prototype.parseXML = function( data ) {
 			xml = undefined;
 		}
 		if ( !xml || !xml.documentElement || xml.getElementsByTagName( "parsererror" ).length ) {
-			alert( "Invalid XML: " + data );
+			var errmess = "Invalid XML: " + data;
+			if (console){
+				console.error(errmess);
+				}
+			else { alert(errmess); }
 		}
 		return xml;
 	};
@@ -1636,9 +1645,10 @@ GeoXml.prototype.processXML = function(doc,titles,latlon) {
 	}
   this.progress += this.docs.length;
   for (var u=0; u<this.docs.length; u++) {
-    this.mb.showMess("Processing "+names[u]);
-    this.processing(this.docs[u],names[u],latlon);
-  }
+	var mess = "Processing "+names[u];
+	this.mb.showMess(mess);
+  	this.processing(this.docs[u],names[u],latlon);
+	}
 };
 
 GeoXml.prototype.makeDescription = function(elem, title, depth) {
@@ -2611,7 +2621,9 @@ GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {
 						ol.opacity = opacity;
 						ol.visible = visible;
 						ol.url = url;
-						if(!this.quiet){ this.mb.showMess("Adding Tiled ArcIms Overlay "+title,1000); }
+						if(!this.quiet){ 
+							this.mb.showMess("Adding Tiled ArcIms Overlay "+title,1000); 
+							}
 						wmslist.push(ol);
 						}
 					}
@@ -3996,6 +4008,9 @@ MessageBox.prototype.centerThis = function(){
 
 MessageBox.prototype.showMess = function (val,temp){
 	if(this.paren.quiet){
+		if(console){
+			console.log(val);
+			}
 		return;
 		}
 	val = unescape(val);
