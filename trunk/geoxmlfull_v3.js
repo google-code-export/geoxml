@@ -273,12 +273,18 @@ GeoXml.prototype.createMarker = function(point, name, desc, styleid, idx, instyl
 		if(instyle && instyle.scale){
 			scale = instyle.scale;
 			}
-	    var bicon = new google.maps.MarkerImage("http://maps.google.com/mapfiles/kml/pal3/icon40.png",
-			new google.maps.Size(32*scale, 32*scale), //size
-			new google.maps.Point(0, 0), //origin
-			new google.maps.Point(16*scale, 12*scale), //anchor
-			new google.maps.Size(32*scale, 32*scale) //scaledSize 
-			);
+	   	
+		if(instyle){
+			bicon = instyle;
+			}
+		else {
+			var bicon = new google.maps.MarkerImage("http://maps.google.com/mapfiles/kml/pal3/icon40.png",
+				new google.maps.Size(32*scale, 32*scale), //size
+				new google.maps.Point(0, 0), //origin
+				new google.maps.Point(16*scale, 16*scale), //anchor
+				new google.maps.Size(32*scale, 32*scale) //scaledSize 
+				);
+			}
 		
 		//alert(bicon.anchor);
 	    if (this.opts.baseicon) {
@@ -2375,9 +2381,22 @@ GeoXml.prototype.handlePlacemarkGeometry = function(mark, geom, idx, depth, full
             }
         }
     };
-GeoXml.prototype.makeIcon = function(currstyle, href, myscale){
+GeoXml.prototype.makeIcon = function(currstyle, href, myscale, hotspot){
 	var scale = 1;
 	var tempstyle;
+	var anchorscale = {x:0.5,y:0.5};
+	if(hotspot){
+		var xu = hotspot.getAttribute("xunits");
+		var x = hotspot.getAttribute("x");
+		if(xu == "fraction"){
+			anchorscale.x = parseFloat(x);
+			}
+		var yu = hotspot.getAttribute("yunits");
+		var y = hotspot.getAttribute("y");
+		if(yu == "fraction"){
+			anchorscale.y = 1 - parseFloat(y);
+			}
+		}
 	if(!!myscale){
 		scale = myscale;
 		}
@@ -2396,7 +2415,7 @@ GeoXml.prototype.makeIcon = function(currstyle, href, myscale){
 			tempstyle = new google.maps.MarkerImage(href);
 			tempstyle = new google.maps.MarkerImage(href,new google.maps.Size(16*scale,16*scale));
 			tempstyle.origin = new google.maps.Point(0*scale,0*scale);
-			tempstyle.anchor = new google.maps.Point(8*scale,8*scale);
+			tempstyle.anchor = new google.maps.Point(16*scale*anchorscale.x,16*scale*anchorscale.y);
 			tempstyle.url = href;
 			}
 		}
@@ -2404,14 +2423,11 @@ GeoXml.prototype.makeIcon = function(currstyle, href, myscale){
 		  if (!!this.opts.baseicon) {
 		   tempstyle = new google.maps.MarkerImage(href,this.opts.baseicon.size);
 		   tempstyle.origin = this.opts.baseicon.origin;
-		   tempstyle.anchor = this.opts.baseicon.anchor;
+		   tempstyle.anchor = new google.maps.Point(this.opts.baseicon.size.x*scale*anchorscale.x,this.opts.baseicon.size.y*scale*anchorscale.y);
 		   tempstyle.scaledSize = this.opts.baseicon.scaledSize;
 		   tempstyle.url = href;
 		  } else {
-			tempstyle = new google.maps.MarkerImage(href,new google.maps.Size(24*scale,32*scale));
-			//tempstyle.origin = new google.maps.Point(0*scale,0*scale);
-			tempstyle.anchor = new google.maps.Point(16*scale,16*scale);
-			tempstyle.url = href;
+			tempstyle = new google.maps.MarkerImage(href,new google.maps.Size(32,32),new google.maps.Point(0,0),new google.maps.Point(32*scale*anchorscale.x,32*scale*anchorscale.y),new google.maps.Size(32*scale,32*scale));
 			if (this.opts.printgif) {
 			  var bits = href.split("/");
 			  var gif = bits[bits.length-1];
@@ -2452,9 +2468,10 @@ GeoXml.prototype.makeIcon = function(currstyle, href, myscale){
 	if (this.opts.noshadow){
 		tempstyle.shadow ="";
 		}
-	//alert("makeIcon "+tempstyle.url);
+
 	return tempstyle;
 	};
+	
 GeoXml.prototype.handleStyle = function(style,sid,currstyle){
 	 var that = this;
       var icons=style.getElementsByTagName("IconStyle");
@@ -2479,7 +2496,9 @@ GeoXml.prototype.handleStyle = function(style,sid,currstyle){
 		if(scale){
 			myscale = scale;
 			}
-		that.styles[strid] = this.makeIcon(currstyle,href,myscale);
+			
+		var hs = icons[0].getElementsByTagName("hotSpot");
+		that.styles[strid] = this.makeIcon(currstyle,href,myscale,hs[0]);
       	}
       // is it a LineStyle ?
       var linestyles=style.getElementsByTagName("LineStyle");
