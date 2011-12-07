@@ -2388,13 +2388,25 @@ GeoXml.prototype.makeIcon = function(currstyle, href, myscale, hotspot){
 	if(hotspot){
 		var xu = hotspot.getAttribute("xunits");
 		var x = hotspot.getAttribute("x");
+		var thrx = 32;
+		var thry = 32;
+		if(this.opts.baseicon){
+			thrx = this.opts.baseicon.size.x;
+			thry = this.opts.baseicon.size.y;
+			}
 		if(xu == "fraction"){
 			anchorscale.x = parseFloat(x);
+			}
+		else {
+			anchorscale.x = parseFloat(x)/thrx;
 			}
 		var yu = hotspot.getAttribute("yunits");
 		var y = hotspot.getAttribute("y");
 		if(yu == "fraction"){
 			anchorscale.y = 1 - parseFloat(y);
+			}
+		else {
+			anchorscale.y = 1 - parseFloat(y)/thry;
 			}
 		}
 	if(!!myscale){
