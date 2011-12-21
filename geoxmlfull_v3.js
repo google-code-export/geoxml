@@ -429,7 +429,7 @@ GeoXml.prototype.createMarker = function(point, name, desc, styleid, idx, instyl
 	        
 			google.maps.event.addListener(m, "click2", function() {
 				var infoWindowOptions = { 
-					content: html2+"</div>", 
+					content: html2+"</div></div>", 
 					pixelOffset: new google.maps.Size(0, 2)
 				};
 				if(this.geoxml.maxiwwidth){
@@ -439,7 +439,7 @@ GeoXml.prototype.createMarker = function(point, name, desc, styleid, idx, instyl
 	        });
 	        google.maps.event.addListener(m, "click3", function() {
 	           	var infoWindowOptions = { 
-					content: html3+"</div>",
+					content: html3+"</div></div>",
 					pixelOffset: new google.maps.Size(0, 2)
 				};
 				if(this.geoxml.maxiwwidth){
@@ -449,7 +449,7 @@ GeoXml.prototype.createMarker = function(point, name, desc, styleid, idx, instyl
 	        });
 	        google.maps.event.addListener(m, "click4", function() {
 			   	var infoWindowOptions = { 
-					content: html4+"</div>",
+					content: html4+"</div></div>",
 					pixelOffset: new google.maps.Size(0, 2)
 				};
 				if(this.geoxml.maxiwwidth){
@@ -458,7 +458,7 @@ GeoXml.prototype.createMarker = function(point, name, desc, styleid, idx, instyl
 				m.infoWindow = new google.maps.InfoWindow(infoWindowOptions);
 	        });
 	    } else {
-	        html1 = html;
+	        html1 = html+"</div>",;
 	    }
   	if(this.opts.markerfollowlinks){
 		if(markerurl && typeof markerurl=="string"){
@@ -3202,7 +3202,6 @@ GeoXml.prototype.createFolder = function(idx, title, sbid, icon, desc, snippet, 
 		if(sb){ sb.innerHTML = sb.innerHTML + htm; }
 		return folderid;
 	    };
-	    
 
 GeoXml.prototype.processGML = function(root,title, latlon, desc, me) {
     var that = this;
@@ -3327,15 +3326,6 @@ GeoXml.prototype.processGML = function(root,title, latlon, desc, me) {
 		        }
 	    	}
 	}
-
-
-	
-
-
-
-
-
-
     // Is this the last file to be processed?
 };
 
@@ -3354,7 +3344,6 @@ google.maps.Polyline.prototype.computeBounds = function() {
   for (var i=0; i < p.getLength() ; i++) {
 	var v = p.getAt(i);
 	if(v){ 
-	//	alert(v +" " +bounds);
 		bounds.extend(v); 
 		}
   	}
