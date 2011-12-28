@@ -410,7 +410,7 @@ GeoXml.prototype.createMarker = function(point, name, desc, styleid, idx, instyl
                      + '<input type="text" SIZE=35 MAXLENGTH=80 name="saddr" id="saddr" value="" />'
                      + '<INPUT value="Go" TYPE="SUBMIT">'
                      + '<input type="hidden" name="daddr" value="' + point.lat() + ',' + point.lng() + "(" + name + ")" + '"/>'
-                     + '<br><a href="# onclick="google.maps.event.trigger(' + this.myvar + '.lastMarker,\'click\');return false;">&#171; Back</a>| <a href="#" onclick="' + this.myvar + '.map.setCenter(new google.maps.LatLng(' + point.lat() + ',' + point.lng() + '),' + this.zoomHere + ');return false;">Zoom Here</a></div>';
+                     + '<br><a href="#" onclick="google.maps.event.trigger(' + this.myvar + '.lastMarker,\'click1\');return false;">&#171; Back</a>| <a href="#" onclick="' + this.myvar + '.map.setCenter(new google.maps.LatLng(' + point.lat() + ',' + point.lng() + '),' + this.zoomHere + ');return false;">Zoom Here</a></div>';
 	        html3 = html + '<div ' + this.directionstyle + '>'
                      + 'Get Directions: <a href="#" onclick="google.maps.event.trigger(' + this.myvar + '.lastMarker,\'click2\');return false;">To Here</a> - '
                      + 'From Here<br>'
@@ -418,15 +418,26 @@ GeoXml.prototype.createMarker = function(point, name, desc, styleid, idx, instyl
                      + '<input type="text" SIZE=35 MAXLENGTH=80 name="daddr" id="daddr" value="" />'
                      + '<INPUT value="Go" TYPE="SUBMIT">'
                      + '<input type="hidden" name="saddr" value="' + point.lat() + ',' + point.lng() + "(" + name + ")" + '"/>'
-                     + '<br><a href="#" onclick="google.maps.event.trigger(' + this.myvar + '.lastMarker,\'click\');return false;">&#171; Back</a> | <a href="#" onclick="' + this.myvar + '.map.setCenter(new google.maps.LatLng(' + point.lat() + ',' + point.lng() + '),' + this.zoomHere + ');return false;">Zoom Here</a></div>';
+                     + '<br><a href="#" onclick="google.maps.event.trigger(' + this.myvar + '.lastMarker,\'click1\');return false;">&#171; Back</a> | <a href="#" onclick="' + this.myvar + '.map.setCenter(new google.maps.LatLng(' + point.lat() + ',' + point.lng() + '),' + this.zoomHere + ');return false;">Zoom Here</a></div>';
 	        html4 = html + '<div ' + this.directionstyle + '>'
                      + 'Search nearby: e.g. "pizza"<br>'
                      + '<form action="http://maps.google.com/maps" method="get"" target="_blank">'
                      + '<input type="text" SIZE=35 MAXLENGTH=80 name="q" id="q" value="" />'
                      + '<INPUT value="Go" TYPE="SUBMIT">'
                      + '<input type="hidden" name="near" value="' + name + ' @' + point.lat() + ',' + point.lng() + '"/>'
-         	     + '<br><a href="# onclick="google.maps.event.trigger(' + this.myvar + '.lastMarker,\'click\');return false;">&#171; Back</a> | <a href="#" onclick="' + this.myvar + '.map.setCenter(new google.maps.LatLng(' + point.lat() + ',' + point.lng() + '),' + this.zoomHere + ');return false;">Zoom Here</a></div>';
+         	     + '<br><a href="#" onclick="google.maps.event.trigger(' + this.myvar + '.lastMarker,\'click1\');return false;">&#171; Back</a> | <a href="#" onclick="' + this.myvar + '.map.setCenter(new google.maps.LatLng(' + point.lat() + ',' + point.lng() + '),' + this.zoomHere + ');return false;">Zoom Here</a></div>';
 	        
+			google.maps.event.addListener(m, "click1", function() {
+				var infoWindowOptions = { 
+					content: html1+"</div></div>", 
+					pixelOffset: new google.maps.Size(0, 2)
+				};
+				if(this.geoxml.maxiwwidth){
+					infoWindowOptions.maxWidth = this.geoxml.maxiwwidth;
+					}
+				m.infoWindow.setOptions(infoWindowOptions);
+	        });
+			
 			google.maps.event.addListener(m, "click2", function() {
 				var infoWindowOptions = { 
 					content: html2+"</div></div>", 
@@ -435,7 +446,7 @@ GeoXml.prototype.createMarker = function(point, name, desc, styleid, idx, instyl
 				if(this.geoxml.maxiwwidth){
 					infoWindowOptions.maxWidth = this.geoxml.maxiwwidth;
 					}
-				m.infoWindow = new google.maps.InfoWindow(infoWindowOptions);
+				m.infoWindow.setOptions(infoWindowOptions);
 	        });
 	        google.maps.event.addListener(m, "click3", function() {
 	           	var infoWindowOptions = { 
@@ -445,7 +456,7 @@ GeoXml.prototype.createMarker = function(point, name, desc, styleid, idx, instyl
 				if(this.geoxml.maxiwwidth){
 					infoWindowOptions.maxWidth = this.geoxml.maxiwwidth;
 					}
-				m.infoWindow = new google.maps.InfoWindow(infoWindowOptions);
+				m.infoWindow.setOptions(infoWindowOptions);
 	        });
 	        google.maps.event.addListener(m, "click4", function() {
 			   	var infoWindowOptions = { 
@@ -455,7 +466,7 @@ GeoXml.prototype.createMarker = function(point, name, desc, styleid, idx, instyl
 				if(this.geoxml.maxiwwidth){
 					infoWindowOptions.maxWidth = this.geoxml.maxiwwidth;
 					}
-				m.infoWindow = new google.maps.InfoWindow(infoWindowOptions);
+				m.infoWindow.setOptions(infoWindowOptions);
 	        });
 	    } else {
 	        html1 = html+"</div>",;
@@ -2362,9 +2373,9 @@ GeoXml.prototype.handlePlacemarkGeometry = function(mark, geom, idx, depth, full
         if (nn.match(/^(LinearRing)/i) || nn.match(/^(gml:LinearRing)/i)) {
             // its a polygon grab the info from the style
             if (!!style) {
-                width = style.width;
-                color = style.color;
-                opacity = style.opacity;
+                width = style.strokeWeight;
+                color = style.strokeColor;
+                opacity = style.strokeOpacity;
                 fillOpacity = style.fillOpacity;
                 fillcolor = style.fillcolor;
                 fill = style.fill;
