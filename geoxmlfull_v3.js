@@ -1922,9 +1922,9 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
         if (linestring.length || line_count>0) {
           // its a polyline grab the info from the style
           if (!!style) {
-            width = style.width; 
-            color = style.color; 
-            opacity = style.opacity; 
+            width = style.strokeWeight; 
+            color = style.strokeColor; 
+            opacity = style.strokeOpacity; 
           } else {
             width = this.style.width;
             color = this.style.color;
@@ -1946,13 +1946,13 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
         if (polygons.length || poly_count>0) {
           // its a polygon grab the info from the style
           if (!!style) {
-            width = style.width; 
-            color = style.color; 
-            opacity = style.opacity; 
+            width = style.strokeWeight; 
+            color = style.strokeColor; 
+            opacity = style.strokeOpacity; 
             fillOpacity = style.fillOpacity; 
             fillColor = style.fillColor; 
             fill = style.file;
-	    outline = style.outline;
+			outline = style.outline;
           } 
 	fillColor = this.randomColor();
 	color = this.randomColor();
@@ -2342,9 +2342,9 @@ GeoXml.prototype.handlePlacemarkGeometry = function(mark, geom, idx, depth, full
         if (nn.match(/^(LineString)/i)||nn.match(/^(gml:LineString)/i)) {
             // its a polyline grab the info from the style
             if (!!style) {
-                width = style.width;
-                color = style.color;
-                opacity = style.opacity;
+                width = style.strokeWeight;
+                color = style.strokeColor;
+                opacity = style.strokeOpacity;
             } else {
                 width = this.style.width;
                 color = this.style.color;
