@@ -2188,7 +2188,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
         if (linestring.length || line_count>0) {
           // its a polyline grab the info from the style
           if (!!style) {
-            width = style.strokeWeigth; 
+            width = style.strokeWeight; 
             color = style.strokeColor; 
             opacity = style.strokeOpacity; 
           } else {
@@ -2551,8 +2551,6 @@ GeoXml.prototype.handlePlacemarkGeometry = function(mark, geom, idx, depth, full
             }
         }
 
-
-
         for (var c = 0; c < coordset.length; c++) {
             var skiprender = false;
             if (coordset[c].parentNode && (coordset[c].parentNode.nodeName.match(/^(gml:Box|gml:Envelope)/i))) {
@@ -2805,9 +2803,9 @@ GeoXml.prototype.handleStyle = function(style,sid,currstyle){
         if (!!!that.styles[strid]) {
           that.styles[strid] = {};
 		  }
-        that.styles[strid].color=color;
-        that.styles[strid].width=width;
-        that.styles[strid].opacity=opacity;
+        that.styles[strid].strokeColor=color;
+        that.styles[strid].strokeWeight=width;
+        that.styles[strid].strokeOpacity=opacity;
       }
       // is it a PolyStyle ?
       var polystyles=style.getElementsByTagName("PolyStyle");
@@ -2832,23 +2830,22 @@ GeoXml.prototype.handleStyle = function(style,sid,currstyle){
 			opacity = that.opts.overrideOpacity;
 			}
         if (!!!that.styles[strid]) {
-          that.styles[strid] = {};
-        }
+			that.styles[strid] = {};
+			}
 		that.styles[strid].fill = fill;
 		that.styles[strid].outline = outline;
 		if(colormode != "random") {
-				that.styles[strid].fillcolor = color;
+			that.styles[strid].fillColor = color;
 			}
 		else {
 			that.styles[strid].colortint = color;
 			}
-			that.styles[strid].fillOpacity=opacity;
-			if (!fill) { that.styles[strid].fillOpacity = 0; }
-			if (!outline) { that.styles[strid].opacity = 0; }
-		  }
+		that.styles[strid].fillOpacity=opacity;
+		if (!fill) { that.styles[strid].fillOpacity = 0; }
+		if (!outline) { that.styles[strid].strokeOpacity = 0; }
+		}
 	  
 	tempstyle = that.styles[strid];
-
 	return tempstyle;
 };
 GeoXml.prototype.processKML = function(node, marks, title, sbid, depth, paren) {  
