@@ -1988,7 +1988,7 @@ GeoXml.prototype.handleGeomark = function (mark, idx, trans) {
             opacity = style.strokeOpacity; 
             fillOpacity = style.fillOpacity; 
             fillColor = style.fillColor; 
-            fill = style.file;
+            fill = style.fill;
 			outline = style.outline;
           } 
 	fillColor = this.randomColor();
