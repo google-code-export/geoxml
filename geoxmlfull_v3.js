@@ -495,7 +495,7 @@ GeoXml.prototype.createMarker = function(point, name, desc, styleid, idx, instyl
 				m.infoWindow.setOptions(infoWindowOptions);
 	        });
 	    } else {
-	        html1 = html+"</div>",;
+	        html1 = html+"</div>";
 	    }
   	if(this.opts.markerfollowlinks){
 		if(markerurl && typeof markerurl=="string"){
@@ -2403,7 +2403,7 @@ GeoXml.prototype.handlePlacemarkGeometry = function(mark, geom, idx, depth, full
                 color = style.strokeColor;
                 opacity = style.strokeOpacity;
                 fillOpacity = style.fillOpacity;
-                fillcolor = style.fillcolor;
+                fillcolor = style.fillColor;
                 fill = style.fill;
                 outline = style.outline;
 				}	
