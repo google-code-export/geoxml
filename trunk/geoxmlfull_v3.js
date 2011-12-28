@@ -265,7 +265,7 @@ GeoXml.prototype.createMarkerJSON = function(item,idx) {
 	};
 
 GeoXml.prototype.createMarker = function(point, name, desc, styleid, idx, instyle, visible, kml_id, markerurl,snip) {
-	    var myvar = this.myvar;
+	   	var myvar = this.myvar;
 	    var icon;
 		var shadow;
 	    var href;
@@ -273,7 +273,7 @@ GeoXml.prototype.createMarker = function(point, name, desc, styleid, idx, instyl
 		if(instyle && instyle.scale){
 			scale = instyle.scale;
 			}
-	   	
+		var bicon;
 		if(instyle){
 			bicon = instyle;
 			}
@@ -285,14 +285,19 @@ GeoXml.prototype.createMarker = function(point, name, desc, styleid, idx, instyl
 				new google.maps.Size(32*scale, 32*scale) //scaledSize 
 				);
 			}
-		
-		//alert(bicon.anchor);
+
 	    if (this.opts.baseicon) {
-			//bicon = this.opts.baseicon;
 			bicon.size = this.opts.baseicon.size;
 			bicon.origin = this.opts.baseicon.orgin;
 			bicon.anchor = this.opts.baseicon.anchor;
-			bicon.scaledSize = this.opts.baseicon.scaledSize;
+			if (scale){
+				if(instyle){
+					bicon.scaledSize = instyle.scaledSize;
+					}
+				}
+			else {
+				bicon.scaledSize = this.opts.baseicon.scaledSize;
+				}
 			scale = 1;
 			}
 		icon = bicon;	
@@ -317,11 +322,10 @@ GeoXml.prototype.createMarker = function(point, name, desc, styleid, idx, instyl
 	        shadow = null;
 	        if (!href) {
 	            href = "http://maps.google.com/mapfiles/kml/pal3/icon40.png";
-	        }
-
+				}
 	        icon = bicon;//new google.maps.MarkerImage(bicon);
 			icon.url = href;  
-	    }
+			}
 	    else {
 	        href = "http://maps.google.com/mapfiles/kml/pal3/icon40";
 	        if (instyle == null || typeof instyle == "undefined") {
@@ -342,16 +346,18 @@ GeoXml.prototype.createMarker = function(point, name, desc, styleid, idx, instyl
 	    var iwoptions = this.opts.iwoptions || {};
 	    var markeroptions = this.opts.markeroptions || {};
 	    var icontype = this.opts.icontype || "style";
-		 
+		
 	    if (icontype == "style") {
 			var blark = this.styles[styleid];
 	        if (!!blark) {
-	            icon = bicon;//new GIcon(bicon, this.styles[style].href, null, this.styles[style].shadow);
-	            icon.url = blark.url;
+				icon = bicon;//new GIcon(bicon, this.styles[style].href, null, this.styles[style].shadow);
+				icon.url = blark.url;
+				icon.anchor = blark.anchor;
 	            href = blark.url;
-	        }
-	    }
+				}
+			}
 	    markeroptions.icon = icon;
+	 
 	    markeroptions.title = name;
 		//markeroptions.image = icon.image;
 		var start = icon.url.substring(0,4); //handle relative urls
@@ -360,17 +366,37 @@ GeoXml.prototype.createMarker = function(point, name, desc, styleid, idx, instyl
 		else {
 			if(typeof this.url == "string"){
 				var slash = this.url.lastIndexOf("/");
+				var changed = false;
+				var subchanged = false;
+				var newurl;
 				if(slash != -1){
-					markeroptions.icon.url = this.url.substring(0,slash)+"/" + icon.url;
+					newurl = this.url.substring(0,slash);
+					changed = true;
+					slash = 0;
 					}
+				
+				while(slash != -1 && icon.url.match(/^..\//)){
+					slash = newurl.lastIndexOf("/");
+					icon.url = icon.url.substring(3);
+					if (slash != -1){
+						newurl = newurl.substring(0,slash);
+						}
+					changed = true;
+					}
+					
+				if(newurl != "" && icon.url.match(/^..\//)){
+					newurl = "";
+					icon.url = icon.url.substring(3);
+					}
+			 
+				if(newurl ==""){ markeroptions.icon.url = icon.url; }
+				else { markeroptions.icon.url = newurl+"/"+ icon.url; }
 				}
 			}
 		
 		markeroptions.clickable = true;
 		markeroptions.pane = this.markerpane;
 		markeroptions.position = point;
-	    //var m = new LMarker(point, markeroptions);
-		//alert(icon.size+" "+icon.scaledSize+" "+icon.url);
 		var m = new google.maps.Marker(markeroptions);
 	    m.title = name;
 	    m.id = kml_id;
@@ -2399,17 +2425,17 @@ GeoXml.prototype.makeIcon = function(currstyle, href, myscale, hotspot){
 	if(hotspot){
 		var xu = hotspot.getAttribute("xunits");
 		var x = hotspot.getAttribute("x");
-		var thrx = 32;
-		var thry = 32;
-		if(this.opts.baseicon){
-			thrx = this.opts.baseicon.size.x;
-			thry = this.opts.baseicon.size.y;
+		var thtwox = 32; 
+		var thtwoy = 32;
+		if(this.opts.baseicon) {
+			thtwox = this.opts.baseicon.size.width;
+			thtwoy = this.opts.baseicon.size.height;
 			}
 		if(xu == "fraction"){
 			anchorscale.x = parseFloat(x);
 			}
 		else {
-			anchorscale.x = parseFloat(x)/thrx;
+			anchorscale.x = parseFloat(x)/thtwox;
 			}
 		var yu = hotspot.getAttribute("yunits");
 		var y = hotspot.getAttribute("y");
@@ -2417,10 +2443,11 @@ GeoXml.prototype.makeIcon = function(currstyle, href, myscale, hotspot){
 			anchorscale.y = 1 - parseFloat(y);
 			}
 		else {
-			anchorscale.y = 1 - parseFloat(y)/thry;
-			}
+			anchorscale.y = 1 - parseFloat(y)/thtwoy;
+			}		
 		}
-	if(!!myscale){
+	 
+	if(typeof myscale == "number"){
 		scale = myscale;
 		}
 	if (!!href) { }
@@ -2431,23 +2458,27 @@ GeoXml.prototype.makeIcon = function(currstyle, href, myscale, hotspot){
 				scale = currstyle.scale;
 				}
 			}
-		 
-		//default icon
 		else {
 			href = "http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png";
-			tempstyle = new google.maps.MarkerImage(href);
 			tempstyle = new google.maps.MarkerImage(href,new google.maps.Size(16*scale,16*scale));
 			tempstyle.origin = new google.maps.Point(0*scale,0*scale);
 			tempstyle.anchor = new google.maps.Point(16*scale*anchorscale.x,16*scale*anchorscale.y);
-			tempstyle.url = href;
 			}
 		}
 	if (!!href) {
 		  if (!!this.opts.baseicon) {
+		  var bicon = this.opts.baseicon;
 		   tempstyle = new google.maps.MarkerImage(href,this.opts.baseicon.size);
 		   tempstyle.origin = this.opts.baseicon.origin;
-		   tempstyle.anchor = new google.maps.Point(this.opts.baseicon.size.x*scale*anchorscale.x,this.opts.baseicon.size.y*scale*anchorscale.y);
-		   tempstyle.scaledSize = this.opts.baseicon.scaledSize;
+		   tempstyle.anchor = new google.maps.Point(this.opts.baseicon.size.width*scale*anchorscale.x,this.opts.baseicon.size.height*scale*anchorscale.y);
+		   if(this.opts.baseicon.scaledSize){
+				tempstyle.scaledSize = this.opts.baseicon.scaledSize;
+				}
+			else {
+				var w = bicon.size.width*scale;
+				var h = bicon.size.height*scale;
+				tempstyle.scaledSize = new google.maps.Size(w,h);
+				}
 		   tempstyle.url = href;
 		  } else {
 			tempstyle = new google.maps.MarkerImage(href,new google.maps.Size(32,32),new google.maps.Point(0,0),new google.maps.Point(32*scale*anchorscale.x,32*scale*anchorscale.y),new google.maps.Size(32*scale,32*scale));
@@ -2458,7 +2489,7 @@ GeoXml.prototype.makeIcon = function(currstyle, href, myscale, hotspot){
 			  tempstyle.printImage = gif;
 			  tempstyle.mozPrintImage = gif;
 				}
-			if (!!this.opts.noshadow) {
+			if (!!this.opts.noshadow) { //shadow image code probably needs removed 
 			  tempstyle.shadow="";
 			} else {
 			  // Try to guess the shadow image
@@ -2491,7 +2522,6 @@ GeoXml.prototype.makeIcon = function(currstyle, href, myscale, hotspot){
 	if (this.opts.noshadow){
 		tempstyle.shadow ="";
 		}
-
 	return tempstyle;
 	};
 	
@@ -2512,16 +2542,17 @@ GeoXml.prototype.handleStyle = function(style,sid,currstyle){
 	  
       if (icons.length > 0) {
         href=this.getText(icons[0].getElementsByTagName("href")[0]);
-		if(currstyle && currstyle.scale){
-			myscale = currstyle.scale;
+		if(!!!href){
+			href = currstyle.url;
 			}
 		var scale = parseFloat(this.getText(icons[0].getElementsByTagName("scale")[0]),10);
 		if(scale){
 			myscale = scale;
 			}
-			
 		var hs = icons[0].getElementsByTagName("hotSpot");
-		that.styles[strid] = this.makeIcon(currstyle,href,myscale,hs[0]);
+		tempstyle = this.makeIcon(currstyle,href,myscale,hs[0]);
+		tempstyle.scale = myscale;
+		that.styles[strid] = tempstyle;
       	}
       // is it a LineStyle ?
       var linestyles=style.getElementsByTagName("LineStyle");
@@ -2574,7 +2605,7 @@ GeoXml.prototype.handleStyle = function(style,sid,currstyle){
 		that.styles[strid].fill = fill;
 		that.styles[strid].outline = outline;
 		if(colormode != "random") {
-			that.styles[strid].fillcolor = color;
+			that.styles[strid].fillColor = color;
 			}
 		else {
 			that.styles[strid].colortint = color;
